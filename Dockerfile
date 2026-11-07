@@ -1,5 +1,6 @@
 FROM node:22-bookworm-slim AS services
 WORKDIR /app
+COPY .npmrc ./
 COPY contracts/package*.json ./contracts/
 RUN npm ci --prefix contracts
 COPY backend/package*.json ./backend/

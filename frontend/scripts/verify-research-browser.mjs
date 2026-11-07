@@ -21,8 +21,10 @@ let createPaidTools = createLocalPaidResearch;
 if (paid === 'fixture') {
   const key = generatePrivateKey(), { address } = privateKeyToAccount(key);
   process.env.ARKIV_WRITER_PRIVATE_KEY = key;
+  let queries = 0;
   createPaidTools = options => createLocalPaidResearch({ ...options, arkiv: {
     async query() {
+      if (++queries === 1) return { chainId: 7794095, block: '10', records: [] };
       return { chainId: 7794095, block: '10', records: [{
         entityKey: '0x' + 'ab'.repeat(32), address, owner: address, network: 'eip155:1337', role: 'researcher',
         scheme: 'janus-task-v1', status: 'ready', capabilities: ['research'], updatedAtBlock: '9',
@@ -102,6 +104,13 @@ try {
     const card = page.locator('article').filter({ has: page.getByRole('button', { name: 'Continue worker' }) });
     assert.equal(await card.locator('dt').filter({ hasText: /^Spent$/ }).locator('..').locator('dd').textContent(), sourcePrice);
     await card.getByRole('button', { name: 'Interrupt worker' }).click();
+    if (paid === 'fixture') {
+      await page.getByText('No eligible live Arkiv worker found. Resume to check again.', { exact: true }).waitFor();
+      const [paused] = await listRuns(directory, user);
+      assert.equal(paused.workers.alpha.attempt, 1);
+      const resume = page.getByRole('button', { name: 'Resume', exact: true });
+      await resume.click();
+    }
     const replay = page.locator('li').filter({ hasText: 'Paid result reused—no additional charge' });
     await replay.waitFor({ timeout: 60000 });
     const receiptPath = await replay.getByRole('link', { name: 'View transaction receipt' }).getAttribute('href');
@@ -136,6 +145,7 @@ try {
   await page.screenshot({path:path.join(directory,'mobile.png'),fullPage:true});
   assert.deepEqual(errors,[]);
   console.log('Dashboard browser acceptance passed: original shell, agent creation, parallel run, checkpoint replacement, event filtering, final report and responsive rendering.');
+  if (paid) console.log(`Paid dashboard verified with ${paid === 'live' ? 'live Rabdi' : 'directory fixture'}: local settlement, worker interruption, confirmed reassignment and original receipt reuse.`);
   console.log('Screenshots: '+directory);
 } finally {
   await browser.close();

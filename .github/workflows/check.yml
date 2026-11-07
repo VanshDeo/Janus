@@ -10,7 +10,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,7 +29,31 @@ jobs:
       - name: Verify recovery wallet flow
         run: npm run recovery:test:browser --prefix contracts
       - name: Verify dashboard agent browser flow
-        run: node frontend/scripts/verify-research-browser.mjs
+        run: node --experimental-strip-types frontend/scripts/verify-research-browser.mjs
 
       - name: Verify authoritative treasury dashboard and independent exit
         run: npm run dashboard:test:browser --prefix contracts
+
+      - name: Verify shared Compose deployment and paid dashboard
+        env:
+          JANUS_MERCHANT_URL: http://127.0.0.1:4023
+          JANUS_RPC_URL: http://127.0.0.1:8545
+          JANUS_VERIFY_PAID: fixture
+        run: |
+          docker compose up --build --wait
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const merchant = await fetch('http://127.0.0.1:4023/deployment');
+          const frontend = await fetch('http://127.0.0.1:3000/api/integrations');
+          assert.equal(merchant.status, 200);
+          assert.equal(frontend.status, 200);
+          const manifest = await merchant.json();
+          assert.equal(manifest.chainId, 1337);
+          assert.deepEqual((await frontend.json()).deployment, manifest);
+          NODE
+          docker compose exec -T backend node backend/docker/smoke.mjs
+          node --experimental-strip-types --test frontend/test/research.test.mjs
+          node --experimental-strip-types frontend/scripts/verify-research-browser.mjs
+      - name: Stop Compose
+        if: always()
+        run: docker compose down
