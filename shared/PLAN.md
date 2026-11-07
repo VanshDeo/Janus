@@ -6,11 +6,11 @@ Follow [demo.md](../demo.md). Preserve the local payment-aware handoff, recorded
 
 ## Dashboard agent creation and monitoring
 
-The next implementation sequence is defined in [DASHBOARD_AGENTS.md](DASHBOARD_AGENTS.md): account-owned agent creation, durable parallel orchestration and monitoring, user-key model execution, payment-aware handoff, then Arkiv replacement and independent owner exit. The first three phases now have an implemented dashboard/runtime and offline/browser tests; Groq provider execution is verified by the phase-five bounded demo. See [DASHBOARD_RUNTIME.md](DASHBOARD_RUNTIME.md). Paid-tool wiring is verified through trusted supervisor bindings; discovery-driven research-run reassignment remains open.
+The next implementation sequence is defined in [DASHBOARD_AGENTS.md](DASHBOARD_AGENTS.md): account-owned agent creation, durable parallel orchestration and monitoring, user-key model execution, payment-aware handoff, then Arkiv replacement and independent owner exit. The first three phases now have an implemented dashboard/runtime and offline/browser tests; Groq provider execution is verified by the phase-five bounded demo. See [DASHBOARD_RUNTIME.md](DASHBOARD_RUNTIME.md). The local dashboard supervisor binds paid tools and live Arkiv discovery to the on-chain assignment and the original paid receipt.
 
 ## Local orchestration
 
-Docker Compose starts the implemented frontend/backend/contracts together with persistent local chain and merchant state. SDK purchase/replay smoke verification is provided; connected dashboard and production process scheduling remain separate gates. See [DOCKER.md](DOCKER.md). No sponsor claim changes in this phase.
+Docker Compose starts the implemented frontend/backend/contracts together with persistent local chain and merchant state. SDK and Chromium checks cover purchase/replay and the connected dashboard. Full deployment and live Rabdi acceptance are tracked separately. See [DOCKER.md](DOCKER.md). No sponsor claim changes in this phase.
 
 ## Foundation completed
 

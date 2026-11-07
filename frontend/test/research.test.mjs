@@ -38,4 +38,34 @@ test('research routes enforce identity, billable consent, and account-private du
   assert.ok(result.report.text.includes('Research fixture report'));
   assert.ok(result.events.some(event => event.type === 'worker-replaced'));
   assert.equal((await (await GET(request(owner))).json()).runs[0].id, run.id);
+  if (process.env.JANUS_VERIFY_PAID) {
+    const created = await POST(request(owner, { action: 'create', mode: 'paid', question: 'Research treasury task budgets.', holdPaidCheckpoint: true }));
+    assert.equal(created.status, 201);
+    const { run: paid } = await created.json();
+    const detail = async () => (await (await GET(request(owner, null, '?id=' + paid.id))).json()).run;
+    try {
+      let current;
+      for (let i = 0; i < 100; i++) {
+        current = await detail();
+        if (current.workers.alpha?.status === 'paid-checkpoint' || current.status === 'failed') break;
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      assert.equal(current.workers.alpha?.status, 'paid-checkpoint', current.error);
+      assert.equal(current.tasks.alpha.spent, '20000');
+      const control = { action: 'continue', id: paid.id, agentId: 'alpha', attempt: current.workers.alpha.attempt };
+      assert.equal((await POST(request(other, control))).status, 400);
+      assert.equal((await POST(request(owner, { ...control, attempt: 99 }))).status, 400);
+      assert.equal((await POST(request(owner, control))).status, 200);
+      for (let i = 0; i < 100; i++) {
+        current = await detail();
+        if (['completed', 'failed'].includes(current.status)) break;
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
+      assert.equal(current.status, 'completed', current.error);
+      assert.match(current.report.text, /Purchased source/);
+    } finally {
+      const current = await detail();
+      if (['running', 'queued', 'paused'].includes(current.status)) await POST(request(owner, { action: 'cancel', id: paid.id }));
+    }
+  }
 });

@@ -6,8 +6,8 @@ import { operationId, encodeAuthorization, baseUnits } from '../../../shared/pro
 import { taskTreasuryAbi as abi } from './treasury.mjs';
 import { accessMessage, quoteMessage, requestHash } from './task-merchant.mjs';
 
-export async function buyTaskDataset({ publicClient, walletClient, endpoint, taskId, stepId, request, manifest }) {
- endpoint = merchantEndpoint(endpoint);
+export async function buyTaskDataset({ publicClient, walletClient, endpoint, taskId, stepId, request, manifest, localMerchant = false, onReuse = () => {} }) {
+ endpoint = merchantEndpoint(endpoint, { local: localMerchant && manifest.mode === 'local' && manifest.chainId === 1337 });
  await validateTreasury(publicClient, manifest);
  if (request.treasury.toLowerCase() !== manifest.treasury.toLowerCase() || request.token.toLowerCase() !== manifest.token.toLowerCase()) throw new Error('Client deployment mismatch');
  if (await publicClient.getChainId() !== Number(request.chainId) || await walletClient.getChainId() !== Number(request.chainId)) throw new Error('Client chain mismatch');
@@ -40,5 +40,6 @@ export async function buyTaskDataset({ publicClient, walletClient, endpoint, tas
  const paidReceipt = await publicClient.getTransactionReceipt({ hash: result.receipt.transaction });
  const paid = parseEventLogs({ abi, logs: paidReceipt.logs, eventName: 'Paid' }).find(log => log.address.toLowerCase() === request.treasury.toLowerCase() && log.args.taskId === taskId.toLowerCase() && log.args.operationId === opId && log.args.attempt === settled.attempt && log.args.amount === settled.amount && log.args.merchant.toLowerCase() === request.merchant.toLowerCase());
  if (paidReceipt.status !== 'success' || !paid) throw new Error('Result receipt does not prove this payment');
+ if (Number(op.status) === 2) await onReuse(result);
  return result;
 }

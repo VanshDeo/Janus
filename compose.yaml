@@ -47,6 +47,16 @@ services:
     init: true
     environment:
       PRIVY_VERIFICATION_KEY: ${PRIVY_VERIFICATION_KEY:-}
+      JANUS_WORKSPACE_ROOT: /app
+      JANUS_WORKBENCH_STATE_DIR: /app/.workbench-state
+      JANUS_VAULT_KEY: ${JANUS_VAULT_KEY:-}
+      JANUS_MERCHANT_URL: http://backend:4023
+      JANUS_RPC_URL: http://contracts:8545
+      JANUS_RPC_PORT: ${JANUS_RPC_PORT:-8545}
+      ARKIV_WRITER_PRIVATE_KEY: ${ARKIV_WRITER_PRIVATE_KEY:-}
+      ARKIV_ACCESS_KEY: ${ARKIV_ACCESS_KEY:-}
+    volumes:
+      - workbench-data:/app/.workbench-state
     depends_on:
       backend:
         condition: service_healthy
@@ -61,3 +71,4 @@ services:
 volumes:
   chain-data:
   merchant-data:
+  workbench-data:

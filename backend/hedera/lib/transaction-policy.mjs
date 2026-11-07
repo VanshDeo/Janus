@@ -6,8 +6,9 @@ export async function transactionPolicy(publicClient, chainId) {
  if (gasPrice <= 0n || gasPrice * gas > 2n * 10n ** 18n) throw new Error('Testnet gas ceiling exceeded');
  return { type: 'legacy', gas, gasPrice };
 }
-export function merchantEndpoint(value) {
+export function merchantEndpoint(value, { local = false } = {}) {
  const url = new URL(value);
+ if (local && url.origin === 'http://backend:4023' && !url.username && !url.password) return url;
  if (url.username || url.password || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)))) throw new Error('Merchant requires HTTPS outside loopback');
  return url;
 }

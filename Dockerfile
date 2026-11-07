@@ -17,7 +17,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY frontend/package*.json frontend/.npmrc ./frontend/
 RUN npm ci --prefix frontend
 COPY frontend ./frontend
+COPY --from=services /app/backend ./backend
+COPY --from=services /app/contracts ./contracts
 COPY shared ./shared
+COPY scripts/prepare-recovery.mjs ./scripts/
+RUN mkdir /app/.workbench-state && chown node:node /app/.workbench-state
 ARG NEXT_PUBLIC_PRIVY_APP_ID=""
 ARG NEXT_PUBLIC_PRIVY_CLIENT_ID=""
 ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""

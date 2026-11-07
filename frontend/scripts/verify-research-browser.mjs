@@ -7,11 +7,30 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { build } from '../../contracts/node_modules/esbuild/lib/main.js';
 import { chromium } from '../../contracts/node_modules/playwright/index.mjs';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { createLocalPaidResearch, localRunBalances } from '../../backend/workbench/local-paid-research.mjs';
+import { localDeployment, sourcePrice } from '../../backend/workbench/local-deployment.mjs';
+import { GET as integrations } from '../src/app/api/integrations/route.ts';
 import { defaultConfig, validateWorkbenchConfig } from '../../backend/workbench/config.mjs';
 import { createRun, executeResearch, readRun, listRuns, controlRun } from '../../backend/workbench/research.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const directory = await fs.mkdtemp(path.join(root, 'contracts/phase1/artifacts/dashboard-browser-'));
 let config = structuredClone(defaultConfig);
+const paid = process.env.JANUS_VERIFY_PAID;
+let createPaidTools = createLocalPaidResearch;
+if (paid === 'fixture') {
+  const key = generatePrivateKey(), { address } = privateKeyToAccount(key);
+  process.env.ARKIV_WRITER_PRIVATE_KEY = key;
+  createPaidTools = options => createLocalPaidResearch({ ...options, arkiv: {
+    async query() {
+      return { chainId: 7794095, block: '10', records: [{
+        entityKey: '0x' + 'ab'.repeat(32), address, owner: address, network: 'eip155:1337', role: 'researcher',
+        scheme: 'janus-task-v1', status: 'ready', capabilities: ['research'], updatedAtBlock: '9',
+        expiresAtBlock: '100', validUntil: String(Math.floor(Date.now() / 1000) + 300),
+      }] };
+    },
+  } });
+}
 const user = 'did:privy:browser-fixture', pending = new Set();
 const auth = `const token = async () => 'browser-fixture'; const noop = async () => {}; const auth = {ready:true,authenticated:true,configured:true,user:{id:'fixture'},getAccessToken:token,walletAddress:null,walletType:null,chainId:null,error:null,login:noop,logout:noop}; export const useRelayAuth = () => auth; export const targetChain = {id:296};`;
 await build({ stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import Dashboard from './src/components/dashboard-shell'; createRoot(document.getElementById('root')).render(<Dashboard initialTab="Agents"/>);`, resolveDir: path.join(root, 'frontend'), loader: 'tsx' }, bundle: true, format: 'esm', jsx: 'automatic', outfile: path.join(directory, 'bundle.js'), alias: { '@': path.join(root, 'frontend/src') }, plugins: [{ name: 'fixture-boundary', setup(build) {
@@ -26,13 +45,35 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST') { let raw=''; for await(const chunk of req) raw+=chunk; const body=JSON.parse(raw); if(body.action==='saveConfig') config=validateWorkbenchConfig(body.config); }
       res.setHeader('Content-Type','application/json'); res.end(JSON.stringify({ config, credentials: [] })); return;
     }
+    if (url.pathname === '/api/integrations') {
+      const response = await integrations(new Request(url));
+      res.writeHead(response.status, Object.fromEntries(response.headers));
+      res.end(await response.text());
+      return;
+    }
     if (url.pathname === '/api/research') {
+      const launch = id => {
+        const promise = executeResearch({ root: directory, user, id, createPaidTools });
+        pending.add(promise);
+        promise.finally(() => pending.delete(promise));
+      };
       let data;
       if (req.method === 'POST') {
         let raw=''; for await(const chunk of req) raw+=chunk; const body=JSON.parse(raw);
-        if (body.action === 'create') { const run=await createRun(directory,user,{...body,config}); const promise=executeResearch({root:directory,user,id:run.id}); pending.add(promise); promise.finally(()=>pending.delete(promise)); data={run}; }
-        else data={run:await controlRun(directory,user,body.id,body.action)};
-      } else data=url.searchParams.has('id')?{run:await readRun(directory,user,url.searchParams.get('id'))}:{runs:await listRuns(directory,user)};
+        if (body.action === 'create') {
+          const deployment = paid && body.mode === 'paid' ? (await localDeployment()).manifest : undefined;
+          const run = await createRun(directory, user, { ...body, config, deployment });
+          launch(run.id);
+          data = { run };
+        } else {
+          data = { run: await controlRun(directory, user, body.id, body.action, body) };
+          if (body.action === 'resume') launch(body.id);
+        }
+      } else if (url.searchParams.has('id')) {
+        const run = await readRun(directory, user, url.searchParams.get('id'));
+        if (run.mode === 'paid') run.tasks = await localRunBalances(run);
+        data = { run };
+      } else data = { runs: await listRuns(directory, user), paidSourcePrice: paid ? sourcePrice : null };
       res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)); return;
     }
     if (url.pathname.startsWith('/assets/')) { res.setHeader('Content-Type', 'image/webp'); res.end(await fs.readFile(path.join(root, 'frontend/public', url.pathname))); return; }
@@ -54,10 +95,39 @@ try {
   await page.getByRole('button',{name:'Save agent',exact:true}).click();
   await page.getByRole('heading',{name:'Evidence reviewer',exact:true}).waitFor();
   await page.getByRole('button',{name:'Runs',exact:true}).click();
+  if (paid) await page.getByLabel('Execution mode').selectOption('paid');
   await page.getByRole('button',{name:'Start run',exact:true}).click();
+  if (paid) {
+    await page.getByRole('button', { name: 'Continue worker' }).waitFor({ timeout: 40000 });
+    const card = page.locator('article').filter({ has: page.getByRole('button', { name: 'Continue worker' }) });
+    assert.equal(await card.locator('dt').filter({ hasText: /^Spent$/ }).locator('..').locator('dd').textContent(), sourcePrice);
+    await card.getByRole('button', { name: 'Interrupt worker' }).click();
+    const replay = page.locator('li').filter({ hasText: 'Paid result reused—no additional charge' });
+    await replay.waitFor({ timeout: 60000 });
+    const receiptPath = await replay.getByRole('link', { name: 'View transaction receipt' }).getAttribute('href');
+    const receipt = await page.request.get(new URL(receiptPath, page.url()).href);
+    assert.equal(receipt.status(), 200);
+    assert.equal((await receipt.json()).status, 'success');
+    const [run] = await listRuns(directory, user);
+    const agent = run.events.find(event => event.type === 'worker-interrupted');
+    const assignment = run.events.find(event => event.type === 'worker-replaced');
+    const paidEvent = run.events.find(event => event.type === 'tool-payment-confirmed' && event.agentId === agent.agentId);
+    const reusedEvent = run.events.find(event => event.type === 'paid-result-reused' && event.agentId === agent.agentId);
+    assert.equal(assignment.epoch, '2');
+    assert.ok(assignment.entityKey);
+    assert.ok(assignment.sequence < run.events.find(event => event.type === 'worker-started' && event.agentId === agent.agentId && event.attempt === 2).sequence);
+    assert.equal(reusedEvent.transaction, paidEvent.transaction);
+    assert.throws(() => process.kill(agent.pid, 0), { code: 'ESRCH' });
+    const task = (await localRunBalances(run))[agent.agentId];
+    assert.equal(task.epoch, '2');
+    assert.equal(task.worker.toLowerCase(), assignment.worker.toLowerCase());
+    assert.equal(task.spent, sourcePrice);
+    assert.equal(task.available, '0');
+    assert.equal(task.reserved, '0');
+  }
   await page.getByRole('heading',{name:'Final report',exact:true}).waitFor({timeout:20000});
   await page.getByLabel('Filter activity by agent').selectOption('alpha');
-  assert.ok(await page.getByText('artifact reused',{exact:true}).count());
+  if (!paid) assert.ok(await page.getByText('artifact reused',{exact:true}).count());
   await page.getByLabel('Filter activity by agent').selectOption('all');
   assert.equal(await page.locator('.unified-sidebar').count(),1);
   assert.equal(await page.locator('.unified-topbar').count(),1);
@@ -67,4 +137,11 @@ try {
   assert.deepEqual(errors,[]);
   console.log('Dashboard browser acceptance passed: original shell, agent creation, parallel run, checkpoint replacement, event filtering, final report and responsive rendering.');
   console.log('Screenshots: '+directory);
-} finally { await browser.close(); await Promise.allSettled([...pending]); await new Promise(resolve=>server.close(resolve)); }
+} finally {
+  await browser.close();
+  for (const run of await listRuns(directory, user)) {
+    if (['running', 'queued', 'paused'].includes(run.status)) await controlRun(directory, user, run.id, 'cancel').catch(() => {});
+  }
+  await Promise.allSettled([...pending]);
+  await new Promise(resolve => server.close(resolve));
+}

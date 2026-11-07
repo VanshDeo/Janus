@@ -6,6 +6,7 @@ import network from '../../../shared/network.json' with { type: 'json' };
 import manifest from '../../../shared/deployments/hedera-testnet.json' with { type: 'json' };
 import { bytes32, taskSnapshot } from '../../../shared/protocol.mjs';
 export const deployment = manifest;
+/** @type {import('viem').Chain} */
 export const chain = defineChain({ ...network, id: network.chainId });
 export const client = createPublicClient({ chain, transport: http(), cacheTime: 0 });
 const abi = descriptor.abi;
@@ -54,4 +55,4 @@ export async function treasuryAction({ publicClient = client, identity = manifes
  if (receipt.status !== 'success') throw new Error(`Transaction reverted: ${hash}`);
  return { hash, block: receipt.blockNumber.toString() };
 }
-export function connectedWallet(provider, address) { return createWalletClient({ chain, account: address, transport: custom(provider) }); }
+export function connectedWallet(provider, address, walletChain = chain) { return createWalletClient({ chain: walletChain, account: address, transport: custom(provider) }); }

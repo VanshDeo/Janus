@@ -6,7 +6,7 @@ export function acquireSignerLock(directory, address) {
  const target = path.join(directory, `signer-${address.toLowerCase()}.lock`);
  let fd;
  try { fd = fs.openSync(target, 'wx', 0o600); }
- catch (error) { if (error.code === 'EEXIST') throw new Error('Signer already locked; reconcile any crashed signer before removing its lock'); throw error; }
+ catch (error) { if (error.code === 'EEXIST') throw new Error('Signer already locked; reconcile any crashed signer before removing its lock', { cause: error }); throw error; }
  try { fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, address, startedAt: new Date().toISOString() })); fs.fsyncSync(fd); }
  catch (error) { fs.closeSync(fd); fs.unlinkSync(target); throw error; }
  let released = false;

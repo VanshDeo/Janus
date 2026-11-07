@@ -6,7 +6,7 @@
 
 ## Container orchestration
 
-Root `compose.yaml` and `Dockerfile` build module-local dependencies on Node 22. `backend/docker/` owns a local Ganache deployment bootstrap and task-aware merchant entrypoint. Chain/deployment and merchant records persist in separate named volumes; health checks order startup. The frontend runs its production Next.js server. No database is required by the current filesystem-backed implementation. See [DOCKER.md](DOCKER.md); the illustrative Hedera dashboard remains a separate integration boundary.
+Root `compose.yaml` and `Dockerfile` build module-local dependencies on Node 22. `backend/docker/` owns a local Ganache deployment bootstrap and task-aware merchant entrypoint. Chain/deployment and merchant records persist in separate named volumes; health checks order startup. The frontend runs its production Next.js server. No database is required by the current filesystem-backed implementation. The dashboard obtains its local deployment from the merchant, and the research supervisor uses the same RPC and deployment for task budgets, settlement and reassignment. See [DOCKER.md](DOCKER.md).
 
 ## Frontend
 

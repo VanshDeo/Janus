@@ -19,10 +19,20 @@ docker compose logs backend contracts
 docker compose down
 ```
 
-`down` preserves the chain and merchant volumes. Keep both together: merchant records contain original paid results. For a deliberate disposable local reset only, `docker compose down --volumes` deletes both. Abruptly killed signers can leave fail-closed locks; reconcile before removing locks rather than treating state as cache.
+`down` preserves the chain, merchant and workbench volumes. Keep these volumes together: merchant records contain original paid results and the workbench links them to runs. For a deliberate disposable local reset only, `docker compose down --volumes` deletes all three. Abruptly killed signers can leave fail-closed locks; reconcile before removing locks rather than treating state as cache.
 
 Optional Privy login: copy `.env.compose.example` to `.env`, set your application IDs and server verification public key, and rebuild. Add localhost to the Privy application's allowed origins. Public IDs are build arguments embedded by Next.js; verification keys are supplied only at runtime. Existing module environment files and credentials are excluded from Docker builds. Empty IDs keep sign-in disabled. Port overrides are in the template.
 
-This starts the implemented modules together. The existing dashboard remains illustrative and configured for Hedera testnet; it does not become a local treasury UI. Use the SDK smoke command for the connected local payment path. The checkpoint demo remains an explicit one-shot command: `docker compose exec backend npm run demo:handoff --prefix backend`. No live Hedera transactions or external model calls occur. The development mnemonic is public; these accounts must never receive real funds. Ports bind to host loopback.
+## Paid research and recovery
 
-Validation on the implementation host: Compose configuration, repository checks, both Solidity compilations, ABI check, shared protocol tests and frontend authentication tests passed. Local bootstrap deployed and funded the treasury successfully. Full container build/start validation remains pending because Docker Desktop's Linux engine did not respond. Native Windows purchase verification reached the filesystem-backed merchant but failed at its directory durability path; the Linux-volume purchase/replay smoke must pass before publishing this phase.
+With Privy configured, open **Runs**, choose **Local paid research** and start a run. Each worker buys one TaskTreasury reference from a 20,000-unit local task budget. Run cards read available, reserved and spent units from the same deployment used by the merchant. The treasury panel uses the published loopback RPC and that deployment.
+
+To test recovery with live Arkiv records, configure a dedicated Rabdi test wallet in the Compose environment and in the Arkiv CLI environment. Publish a fresh profile before running the test:
+
+```sh
+ARKIV_WORKER_NETWORK=eip155:1337 npm run arkiv:publish
+```
+
+Publishing uses Rabdi test gas. With **Wait at the first paid checkpoint** checked, click **Interrupt worker** after the source settles. Look for the live Arkiv selection, confirmed new worker and epoch, and **Paid result reused—no additional charge** with the original receipt. If the record expires or discovery is unavailable, the branch waits. Restore the record and click **Resume**.
+
+Treasury and merchant transactions use local test tokens. The development mnemonic is public and ports bind to host loopback.

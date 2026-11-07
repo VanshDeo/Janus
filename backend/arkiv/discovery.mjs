@@ -67,7 +67,7 @@ export async function discoverReplacement({ directory, network, taskId, treasury
 
 export async function handoffFromArkiv({ runner, directory, publicClient, manifest, taskId, schedulerWallet, authorize, probe, afterAssignment, failedWorker }) {
  const state = await runner.inspect();
- if (state.handoff?.discovery && (state.handoff.status === 'intent' || (state.handoff.status === 'confirmed' && !failedWorker))) {
+ if (state.handoff?.discovery && (state.handoff.status === 'intent' || (state.handoff.status === 'confirmed' && (!failedWorker || same(state.handoff.fromWorker, failedWorker))))) {
   // Reconcile an already-broadcast assignment even after its directory lease expires.
   return { status: 'reconciled', state: await runner.handoff({ schedulerWallet, replacement: state.handoff.replacement,
    eligible: async () => { throw new Error('Pending handoff must only reconcile'); }, afterAssignment }) };

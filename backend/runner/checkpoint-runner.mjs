@@ -9,7 +9,7 @@ import { validateTreasury } from '../../contracts/phase1/lib/recovery.mjs';
 const hash = value => createHash('sha256').update(canonicalJson(value)).digest('hex');
 const same = (a, b) => a?.toLowerCase() === b?.toLowerCase();
 
-export function createCheckpointRunner({ directory, publicClient, manifest, endpoint, taskId, steps, validateResult }) {
+export function createCheckpointRunner({ directory, publicClient, manifest, endpoint, taskId, steps, validateResult, localMerchant = false }) {
  taskId = bytes32(taskId);
  if (!Array.isArray(steps) || !steps.length || new Set(steps.map(step => step.id)).size !== steps.length
    || steps.some(step => typeof step.id !== 'string' || !step.id || !step.request) || typeof validateResult !== 'function') throw new Error('Invalid workflow definition');
@@ -54,9 +54,11 @@ export function createCheckpointRunner({ directory, publicClient, manifest, endp
      const current = await readTask();
      if (current[9] || !same(current[6], walletClient.account.address)) throw new Error('Worker authority changed');
      state.pending = step.id; await save(state); // durable intent before paid HTTP call
-     const result = await buyTaskDataset({ publicClient, walletClient, endpoint, taskId, stepId: step.id, request: step.request, manifest });
+     let reused = false;
+     const result = await buyTaskDataset({ publicClient, walletClient, endpoint, taskId, stepId: step.id, request: step.request, manifest,
+      localMerchant, onReuse: () => { reused = true; } });
      if (!await validateResult(result, step.id)) throw new Error('Output validation failed; payment remains settled');
-     await afterPaid(result, step.id); // deterministic fault hook; no financial state is reset
+     await afterPaid(result, step.id, reused); // deterministic fault hook; no financial state is reset
      const latest = await readTask();
      if (!same(latest[6], walletClient.account.address) || latest[8] !== current[8] || latest[9]) throw new Error('Worker fenced before checkpoint commit');
      state.completed.push({ id: step.id, result, resultHash: hash(result) }); state.pending = null; await save(state);

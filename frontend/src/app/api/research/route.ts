@@ -6,6 +6,9 @@ import { createWorkbenchStore } from '../../../../../backend/workbench/store.mjs
 import { defaultConfig } from '../../../../../backend/workbench/config.mjs';
 import { createRun, readRun, listRuns, controlRun } from '../../../../../backend/workbench/research.mjs';
 
+import { localDeployment, sourcePrice } from '../../../../../backend/workbench/local-deployment.mjs';
+import { localRunBalances } from '../../../../../backend/workbench/local-paid-research.mjs';
+
 const headers = { 'Cache-Control': 'no-store' };
 function workspace() {
   const root = process.env.JANUS_WORKSPACE_ROOT || (existsSync(path.join(process.cwd(), 'backend/workbench')) ? process.cwd() : path.resolve(process.cwd(), '..'));
@@ -34,9 +37,16 @@ export async function GET(request: Request) {
   try { user = await identity(request); } catch { return Response.json({ error: 'Sign in to view runs' }, { status: 401, headers }); }
   try {
     const { state } = workspace(), url = new URL(request.url), id = url.searchParams.get('id');
-    if (id) return Response.json({ run: await readRun(state, user, id) }, { headers });
+    if (id) {
+      const run = await readRun(state, user, id);
+      if (run.mode === 'paid') {
+        try { run.tasks = await localRunBalances(run); }
+        catch { run.treasuryUnavailable = true; }
+      }
+      return Response.json({ run }, { headers });
+    }
     const runs = await listRuns(state, user);
-    return Response.json({ runs: runs.map(({ id, question, status, mode, createdAt }: { id: string; question: string; status: string; mode: string; createdAt: string }) => ({ id, question, status, mode, createdAt })) }, { headers });
+    return Response.json({ paidSourcePrice: process.env.JANUS_MERCHANT_URL ? sourcePrice : null, runs: runs.map(({ id, question, status, mode, createdAt }: { id: string; question: string; status: string; mode: string; createdAt: string }) => ({ id, question, status, mode, createdAt })) }, { headers });
   } catch { return Response.json({ error: 'Run unavailable in this account' }, { status: 404, headers }); }
 }
 export async function POST(request: Request) {
@@ -51,12 +61,17 @@ export async function POST(request: Request) {
     const body = JSON.parse(raw + decoder.decode()), { root, state } = workspace();
     if (body.action === 'create') {
       const config = await createWorkbenchStore(path.join(state, 'vault')).config(user) || defaultConfig;
-      const run = await createRun(state, user, { ...body, config });
+      let deployment;
+      if (body.mode === 'paid') {
+        try { ({ manifest: deployment } = await localDeployment()); }
+        catch { throw new Error('Local treasury or merchant unavailable'); }
+      }
+      const run = await createRun(state, user, { ...body, config, deployment });
       try { await launch(root, state, user, run.id); }
       catch { await controlRun(state, user, run.id, 'cancel'); throw new Error('Supervisor could not start; run cancelled'); }
       return Response.json({ run }, { status: 201, headers });
     }
-    const run = await controlRun(state, user, body.id, body.action);
+    const run = await controlRun(state, user, body.id, body.action, { agentId: body.agentId, attempt: body.attempt });
     if (body.action === 'resume') await launch(root, state, user, body.id);
     return Response.json({ run }, { headers });
   } catch (error) { return Response.json({ error: error instanceof Error ? error.message : 'Run request failed' }, { status: 400, headers }); }
