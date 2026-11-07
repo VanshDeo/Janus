@@ -52,7 +52,9 @@ jobs:
           assert.deepEqual((await frontend.json()).deployment, manifest);
           NODE
           docker compose exec -T backend node backend/docker/smoke.mjs
-          node --experimental-strip-types --test frontend/test/research.test.mjs
+          docker compose exec -T frontend test -w /app/.workbench-state
+          docker compose exec -T -e JANUS_VERIFY_PAID=fixture frontend \
+            node --experimental-strip-types --test test/research.test.mjs
           node --experimental-strip-types frontend/scripts/verify-research-browser.mjs
       - name: Stop Compose
         if: always()
