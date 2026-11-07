@@ -10,6 +10,9 @@ import { chromium } from '../../contracts/node_modules/playwright/index.mjs';
 import { defaultConfig } from '../../backend/workbench/config.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const publication=JSON.parse(await fs.readFile(path.join(root,'backend/arkiv/evidence/2026-11-07/hedera-profile.json')));
+const expectedWriter=process.env.JANUS_ARKIV_EXPECT_WRITER||publication.writer;
+const expectedEntity=process.env.JANUS_ARKIV_EXPECT_ENTITY||publication.entityKey;
+const evidenceDirectory=process.env.JANUS_ARKIV_EVIDENCE_DIR||path.join(root,'backend/arkiv/evidence/2026-11-07');
 const directory=await fs.mkdtemp(path.join(root,'contracts/phase1/artifacts/arkiv-browser-'));
 const auth="const auth={ready:true,authenticated:true,getAccessToken:async()=> 'isolated-fixture',walletAddress:null};export const useRelayAuth=()=>auth;";
 await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Panel from './src/components/agent-control-center';createRoot(document.getElementById('root')).render(<Panel view="Integrations"/>);`,resolveDir:path.join(root,'frontend'),loader:'tsx'},bundle:true,format:'esm',jsx:'automatic',define:{'process.env.NEXT_PUBLIC_ARKIV_ACCESS_KEY':JSON.stringify('')},outfile:path.join(directory,'bundle.js'),alias:{'@':path.join(root,'frontend/src')},plugins:[{name:'account-fixture-only',setup(b){b.onResolve({filter:/privy-auth-context/},()=>({path:'auth',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:auth,loader:'js'}));}}]});
@@ -31,12 +34,13 @@ try {
  await page.getByRole('button',{name:'Read directory',exact:true}).click();
  await page.getByRole('heading',{name:'Worker profiles',exact:true}).waitFor({timeout:20000}).catch(async error=>{console.error(JSON.stringify({body:await page.locator('body').innerText(),pageErrors:errors,rpcRequests:requests},null,2));throw error;});
  const body=await page.locator('body').innerText();
- assert.ok(body.toLowerCase().includes(publication.writer.toLowerCase()),'Published writer must appear in the actual UI');
+ assert.ok(body.toLowerCase().includes(expectedWriter.toLowerCase()),'Independently queried writer must appear in the actual UI');
  assert.ok(requests.length>0,'Browser must query the live Arkiv RPC');
  assert.deepEqual(errors,[]);
  await page.screenshot({path:path.join(directory,'directory.png'),fullPage:true});
- const result={status:'passed',checkedAt:new Date().toISOString(),scope:'actual React component and live public Arkiv SDK reads; account/API fixture; no browser publication or authenticated-user proof',writer:publication.writer,expectedEntity:publication.entityKey,rpcRequests:requests,pageErrors:errors};
- await fs.writeFile(path.join(root,'backend/arkiv/evidence/2026-11-07/browser-read.json'),JSON.stringify(result,null,2)+'\n');
- await fs.copyFile(path.join(directory,'directory.png'),path.join(root,'backend/arkiv/evidence/2026-11-07/browser-directory.png'));
+ const result={status:'passed',checkedAt:new Date().toISOString(),scope:'actual React component and live public Arkiv SDK reads; account/API fixture; no browser publication or authenticated-user proof',writer:expectedWriter,expectedEntity,rpcRequests:requests,pageErrors:errors};
+ await fs.mkdir(evidenceDirectory,{recursive:true});
+ await fs.writeFile(path.join(evidenceDirectory,'browser-read.json'),JSON.stringify(result,null,2)+'\n');
+ await fs.copyFile(path.join(directory,'directory.png'),path.join(evidenceDirectory,'browser-directory.png'));
  console.log(JSON.stringify(result,null,2));
 }finally{if(browser)await browser.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}

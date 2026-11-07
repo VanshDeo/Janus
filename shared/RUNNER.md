@@ -1,5 +1,9 @@
 # Checkpointed handoff reference
 
+Windows persistence uses file fsync and atomic rename without directory fsync;
+it supports the tested process-crash boundaries, not a power-loss guarantee.
+POSIX flushes directory metadata too. Payment uncertainty still stops execution.
+
 `backend/runner/checkpoint-runner.mjs` persists validated per-task checkpoints and a scheduler assignment outbox. Completed step order and artifact hashes are checked against a versioned task/chain/treasury/graph identity before resuming. Financial truth is read from the contract; checkpoints never reset reserved/spent balances. Every paid step uses a stable logical step ID through the task SDK. The SDK independently verifies current operation state and the returned transaction's Paid event, not just the merchant's assertion.
 
 Before a paid call the runner saves the pending step. After independently reconciled payment and output validation, it saves the completed step. If an acknowledgement disappears between those boundaries, a replacement repeats the same logical operation and obtains the original paid artifact. Completed steps are skipped. A deterministic validator is mandatory; checksum integrity is not proof of semantic correctness or worker authorship.

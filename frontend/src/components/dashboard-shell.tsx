@@ -118,12 +118,7 @@ export default function Dashboard({ initialTab = "Overview" }: { initialTab?: st
     return (
       <div className="landing-body" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div className="bg">
-          <video className="bg-video" autoPlay muted loop playsInline style={{ opacity: 0.18, filter: "blur(24px)" }}>
-            <source
-              src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
-              type="video/mp4"
-            />
-          </video>
+
         </div>
         <div
           style={{
@@ -154,12 +149,7 @@ export default function Dashboard({ initialTab = "Overview" }: { initialTab?: st
     <div className="landing-body unified-dashboard-shell">
       {/* Background Video with Apple Frosted Glass Filter */}
       <div className="bg">
-        <video className="bg-video" autoPlay muted loop playsInline style={{ opacity: 0.18, filter: "blur(24px)" }}>
-          <source
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
-            type="video/mp4"
-          />
-        </video>
+
       </div>
 
       {/* Floating Apple Liquid Glass Ambient Light Orbs */}

@@ -12,7 +12,7 @@ type AuthState = {
   walletAddress: string | null; walletType: string | null; chainId: number | null;
   balance: string | null; error: string | null;
   session: "idle" | "checking" | "verified" | "error";
-  login: (method?: "email" | "wallet") => void;
+  login: (method?: "wallet") => void;
   logout: () => Promise<void>; connectWallet: () => void;
   selectWallet: (address: string) => void;
   wallets: { address: string; walletClientType: string }[];
@@ -98,7 +98,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
     walletAddress: wallet?.address ?? null, walletType: wallet?.walletClientType ?? null,
     chainId: privy.authenticated ? chainId : null, balance: privy.authenticated ? balance : null,
     error, session: privy.authenticated ? session : "idle", wallets,
-    login: (method) => { setError(null); login(method ? { loginMethods: [method] } : undefined); },
+    login: () => { setError(null); login({ loginMethods: ["wallet"] }); },
     logout: async () => { await privy.logout(); setSession("idle"); setBalance(null); setChainId(null); selectWallet(null); setError(null); },
     connectWallet: () => privy.connectWallet({
       walletList: ["detected_ethereum_wallets", "metamask", "coinbase_wallet", "rainbow", "wallet_connect"],
@@ -136,10 +136,10 @@ export function PrivyAuthWrapper({ children }: { children: ReactNode }) {
           ],
         },
         walletConnectCloudProjectId: walletConnectProjectId,
-        loginMethods: ["email", "wallet"],
+        loginMethods: ["wallet"],
         defaultChain: targetChain,
         supportedChains: [targetChain],
-        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+        embeddedWallets: { ethereum: { createOnLogin: "off" } },
       }}
     >
       <PrivyBridge>{children}</PrivyBridge>

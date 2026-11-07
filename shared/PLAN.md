@@ -1,5 +1,10 @@
 # Janus implementation plan
 
+Current request: complete sponsor qualifications serially (EF, Arkiv, Hedera),
+confirm each completed requirement and preserve unresolved factual/external gates.
+See [submission status](../docs/SUBMISSION_STATUS.md). Optional prize bonuses are
+separate from mandatory qualification; review records must not be invented.
+
 ## Current direction: research-task demo
 
 Follow [demo.md](../demo.md). Preserve the local payment-aware handoff, recorded Hedera payment/replay and independent recovery. Paid research handoff and authoritative browser treasury controls are implemented with bounded local acceptance. Next complete integrated release verification and funded live Arkiv discovery evidence. Arkiv query results now drive operator-triggered eligible replacement selection; remote worker transport and browser orchestration remain separate. Dashboard agent creation, a single-host parallel research runtime, saved artifacts and account-private monitoring are now implemented. Paid research tools are verified through trusted CLI bindings; treasury controls are connected to the browser. No new sponsor acceptance is claimed.

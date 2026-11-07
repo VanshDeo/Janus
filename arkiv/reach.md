@@ -1,5 +1,24 @@
 # Reach
 
+The team confirms it will continue building Janus after Mumbai. Public demo:
+[janus-puce.vercel.app](https://janus-puce.vercel.app). The hosted frontend is a
+try-it entry point; persisted child-process research requires a long-lived Node
+host, so a Vercel URL alone is not evidence of the complete research runtime.
+
+## Try it today
+
+For research-task owners and worker operators: clone the public repository,
+run `npm run setup`, then `npm run arkiv:query` for an independent live read.
+Run `npm run contracts:compile` and `npm run demo:handoff` to try recovery and
+discovery selection locally without a funded key. For the browser directory,
+run `npm run dev`, configure login as described in the root README, and open
+Dashboard → Integrations → Read worker directory. Empty results after profile
+expiry are expected; they must not silently become hardcoded workers.
+
+Measured scope: one writer, two recorded publications, one browser-read proof,
+and one live-discovery/local-finance handoff. These are integration measurements,
+not external users. See [receipts and query evidence](../backend/arkiv/evidence/2026-11-07/README.md).
+
 No verified external users or downstream projects are claimed. Intended users are research-task owners and independent worker operators who need replacement discovery across clients. Try the independent query, local handoff and funded-key live-discovery demo in `shared/ARKIV.md`. Browser publication/configuration is available; browser orchestration remains separate.
 
 Record actual distinct operators, successful publications, discovery-to-assignment runs and user feedback before claiming adoption. Local logical workers are not external users. Continuation/deployment commitments require the team's actual decision and are not invented here.

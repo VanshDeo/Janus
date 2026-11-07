@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowUpRight, ShieldCheck, Wallet, Mail, AlertCircle, LoaderCircle, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, ShieldCheck, Wallet, AlertCircle, LoaderCircle, LockKeyhole } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { useRelayAuth } from "@/context/privy-auth-context";
 
@@ -31,12 +31,7 @@ export default function LoginPage() {
     <div className="landing-body" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Background Video */}
       <div className="bg">
-        <video className="bg-video" autoPlay muted loop playsInline>
-          <source
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260809_012548_ef22562c-c0ae-4816-ad9d-f8922af4e6a7.mp4"
-            type="video/mp4"
-          />
-        </video>
+
       </div>
 
       {/* Login Shell */}
@@ -93,7 +88,7 @@ export default function LoginPage() {
             <div className="auth-card-eyebrow">YOUR WORKSPACE AWAITS</div>
             <h2 className="auth-card-title">Welcome to Janus.</h2>
             <p className="auth-card-desc">
-              Sign in with email or an existing Ethereum wallet. Email sign-in creates an embedded wallet if you don’t already have one.
+              Sign in with your existing Ethereum wallet through Privy.
             </p>
 
             {!auth.configured && (
@@ -120,24 +115,6 @@ export default function LoginPage() {
               className="cta"
               style={{ width: "100%", justifyContent: "center", gap: "10px", marginTop: "10px" }}
               disabled={!auth.configured || !isReady || auth.authenticated}
-              onClick={() => auth.login("email")}
-            >
-              <Mail size={18} />
-              <span>Continue with email</span>
-              <ArrowUpRight size={16} style={{ marginLeft: "auto" }} />
-            </button>
-
-            <div className="auth-divider-line">
-              <span />
-              <small>OR</small>
-              <span />
-            </div>
-
-            <button
-              type="button"
-              className="btn-secondary-pill"
-              style={{ width: "100%", justifyContent: "center", gap: "10px", height: "46px" }}
-              disabled={!auth.configured || !isReady || auth.authenticated}
               onClick={() => auth.login("wallet")}
             >
               <Wallet size={18} />
@@ -155,7 +132,7 @@ export default function LoginPage() {
             <p className="auth-disclosure-text">
               <ShieldCheck size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
               <span>
-                Authentication & wallet connection by Privy. Privy processes your login identifier and wallet address. Public-chain activity is public.
+                Authentication & wallet connection by Privy. Privy processes your wallet address and connection metadata. Public-chain activity is public.
               </span>
             </p>
           </div>

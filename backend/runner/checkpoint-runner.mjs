@@ -5,6 +5,7 @@ import { canonicalJson, bytes32 } from '../../shared/protocol.mjs';
 import { buyTaskDataset } from '../hedera/lib/task-client.mjs';
 import { taskTreasuryAbi as abi } from '../hedera/lib/treasury.mjs';
 import { validateTreasury } from '../../contracts/phase1/lib/recovery.mjs';
+import { syncDirectory } from '../lib/fs-durability.mjs';
 
 const hash = value => createHash('sha256').update(canonicalJson(value)).digest('hex');
 const same = (a, b) => a?.toLowerCase() === b?.toLowerCase();
@@ -40,7 +41,7 @@ export function createCheckpointRunner({ directory, publicClient, manifest, endp
   const temporary = file + '.tmp', handle = await fs.open(temporary, 'w', 0o600);
   try { await handle.writeFile(JSON.stringify({ hash: hash(state), state }) + '\n'); await handle.sync(); } finally { await handle.close(); }
   await fs.rename(temporary, file);
-  const parent = await fs.open(directory, 'r'); try { await parent.sync(); } finally { await parent.close(); }
+  await syncDirectory(directory);
  };
  return {
   async inspect() { return locked(load); },
