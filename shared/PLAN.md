@@ -88,3 +88,7 @@ On 7 November 2026 the dedicated Rabdi writer published two expiring profiles. I
 ## Successful payment receipts
 
 Per-agent successful-payment hashes and HashScan links are implemented. Receipt tests cover attribution, confirmation filtering, replay deduplication and local-network exclusion. No new live payment was required.
+
+## Dashboard presentation restoration
+
+The original dashboard presentation has been restored at the user’s request, retaining functional integrations and red/green interruption/success indicators. Frontend and Chromium regressions cover the restored layout.

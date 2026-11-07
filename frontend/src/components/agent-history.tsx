@@ -38,7 +38,7 @@ export function AgentActivity({ events, agents = [], linkReceipts, chainId }: { 
   return (
     <ol className="agent-timeline" aria-live="polite">
       {events.map(event => (
-        <li key={event.sequence}>
+        <li key={event.sequence} className={event.type.includes('fail')||event.type.includes('interrupt')?'timeline-interrupted':event.type.includes('reused')||event.type.includes('confirmed')||event.type.includes('completed')?'timeline-success':undefined}>
           <span className="agent-event-number">{String(event.sequence).padStart(2, '0')}</span>
           <div>
             <strong>{event.type.replaceAll('-', ' ')}</strong>

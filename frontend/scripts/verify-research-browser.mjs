@@ -164,6 +164,8 @@ try {
   await page.getByLabel('Filter activity by agent').selectOption('all');
   assert.equal(await page.locator('.unified-sidebar').count(),1);
   assert.equal(await page.locator('.unified-topbar').count(),1);
+  assert.equal(await page.locator('.agent-state-success').first().evaluate(el=>getComputedStyle(el).color),'rgb(74, 222, 128)');
+  assert.equal(await page.locator('.timeline-interrupted').first().evaluate(el=>getComputedStyle(el).borderLeftColor),'rgb(239, 68, 68)');
   await page.screenshot({path:path.join(directory,'desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.screenshot({path:path.join(directory,'mobile.png'),fullPage:true});

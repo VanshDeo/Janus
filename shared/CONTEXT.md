@@ -86,3 +86,7 @@ On 7 November 2026 the dedicated Rabdi writer published two expiring profiles. I
 ## Successful payment receipts
 
 Successful payment receipts are displayed per agent using confirmed payment events or matching financial task receipts. Replay is deduplicated; local/unknown networks never link to Hedera HashScan.
+
+## Dashboard presentation restoration
+
+The pre-showcase dashboard presentation is restored. Testnet funding/model consent, provider assignment, paid receipt links, histories and worker controls remain in the established dashboard structure; backend functionality is unchanged.

@@ -44,6 +44,9 @@
 .agent-history-section { margin-top: 24px; }
 @media(max-width:700px) { .agent-control-center .dashboard-two-col-grid, .agent-control-center .dashboard-metrics-grid { grid-template-columns: 1fr; } .agent-control-center .spotlight-card { padding: 20px; } }
 
-.agent-payment-receipt { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; font-size: 12px; }
-.agent-payment-receipt code { display: block; overflow-wrap: anywhere; word-break: break-all; font-size: 11px; }
-.agent-payment-receipt > span { color: #a1a1aa; }
+.agent-payment-receipt { display:flex; flex-direction:column; gap:6px; margin:12px 0; font-size:12px; }
+.agent-payment-receipt code { overflow-wrap:anywhere; word-break:break-all; font-size:11px; }
+.agent-control-center .hash-tag.agent-state-interrupted { color:#f87171; border-color:rgba(239,68,68,.4); background:rgba(239,68,68,.1); }
+.agent-control-center .hash-tag.agent-state-success { color:#4ade80; border-color:rgba(34,197,94,.4); background:rgba(34,197,94,.1); }
+.agent-timeline li.timeline-success { border-left:3px solid #22c55e; background:rgba(34,197,94,.05); padding-left:14px; }
+.agent-timeline li.timeline-interrupted { border-left:3px solid #ef4444; background:rgba(239,68,68,.06); padding-left:14px; }

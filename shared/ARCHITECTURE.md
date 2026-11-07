@@ -95,3 +95,7 @@ On 7 November 2026 the dedicated Rabdi writer published two expiring profiles. I
 ## Successful payment receipts
 
 `frontend/src/lib/payment-receipts.mjs` selects confirmed per-agent receipts and validates HashScan network/hash inputs; `payment-receipt.tsx` renders full hashes and explorer links without changing dashboard structure.
+
+## Dashboard presentation restoration
+
+Dashboard presentation continues to use the original dashboard shell and agent-control-center components. Testnet options use existing forms/cards rather than a replacement page arrangement. Red/green status styling is presentation only.

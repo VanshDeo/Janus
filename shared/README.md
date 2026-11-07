@@ -31,3 +31,7 @@ On 7 November 2026 the dedicated Rabdi writer published two expiring profiles. I
 ## Successful payment receipts
 
 Successful agent payments now show the full transaction hash and a network-checked HashScan testnet link on agent cards, activity and selected run history.
+
+## Dashboard presentation restoration
+
+The dashboard retains its original glass layout, agent cards, modal forms, saved runs and filtered activity timeline. Interruption and success use red and green indicators; payment hashes and functionality remain available.
