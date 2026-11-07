@@ -12,13 +12,19 @@ export async function GET(request: Request) {
     const { manifest, publicClient } = await localDeployment();
     if (!transaction) return Response.json({ deployment: manifest, rpcPort: process.env.JANUS_RPC_PORT || '8545' }, { headers: { 'Cache-Control': 'no-store' } });
     const receipt = await publicClient.getTransactionReceipt({ hash: transaction as `0x${string}` });
-    if (!receipt.logs.some(log => log.address.toLowerCase() === manifest.treasury.toLowerCase())) {
+    const treasury = manifest.treasury.toLowerCase();
+    if (receipt.to?.toLowerCase() !== treasury && !receipt.logs.some(log => log.address.toLowerCase() === treasury)) {
       return Response.json({ error: 'Treasury receipt unavailable' }, { status: 404 });
     }
     return new Response(JSON.stringify(receipt, (_, value) => typeof value === 'bigint' ? value.toString() : value, 2), {
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });
-  } catch { return Response.json({ error: 'Local treasury unavailable' }, { status: 502 }); }
+  } catch (error) {
+    if (error instanceof Error && error.name === 'TransactionReceiptNotFoundError') {
+      return Response.json({ error: 'Treasury receipt pending or unavailable' }, { status: 404 });
+    }
+    return Response.json({ error: 'Local treasury unavailable' }, { status: 502 });
+  }
 }
 
 export async function POST(request: Request) {

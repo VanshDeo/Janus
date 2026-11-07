@@ -22,11 +22,12 @@ export async function atomic(file, value) {
   await fs.rename(temp, file);
 }
 export const readRun = async (root, user, id) => JSON.parse(await fs.readFile(path.join(runDirectory(root, user, id), 'run.json'), 'utf8'));
-export async function listRuns(root, user) {
+export async function listRuns(root, user, agentId) {
   let names;
   try { names = await fs.readdir(accountDirectory(root, user)); } catch (e) { if (e.code === 'ENOENT') return []; throw e; }
   const results = await Promise.all(names.filter(name => /^[a-f0-9-]{36}$/.test(name)).map(id => readRun(root, user, id)));
-  return results.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const matching = agentId ? results.filter(run => run.config.agents.some(agent => agent.id === agentId)) : results;
+  return matching.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 export async function createRun(root, user, { config, question, mode, confirmProviderBilling, interrupt = false, deployment, holdPaidCheckpoint = false }) {
   config = validateWorkbenchConfig(config);
@@ -108,7 +109,10 @@ export async function executeResearch({ root, user, id, providerCall = callProvi
     delete run.error;
     if (run.mode === 'paid') {
       if (!createPaidTools) throw new Error('Paid research runtime unavailable');
-      paidTools = await createPaidTools({ run, root, directory });
+      paidTools = await createPaidTools({
+        run, root, directory,
+        onWorkerTransaction: (agentId, transaction) => event('reservation-submitted', agentId, 'Worker submitted a treasury reservation.', { transaction }),
+      });
     }
     run.status = 'running'; await event('run-started', 'orchestrator', paidTools ? 'Janus supervisor started with authorized paid research tools.' : 'Janus supervisor started. Research only; no wallet or payment calls.');
     const vault = createWorkbenchStore(path.join(root, 'vault'));

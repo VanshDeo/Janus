@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { createWalletClient, keccak256, stringToHex } from 'viem';
+import { createWalletClient, formatLog, keccak256, parseEventLogs, stringToHex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { taskSnapshot } from '../../shared/protocol.mjs';
 import { account, chain } from '../docker/common.mjs';
@@ -26,12 +26,40 @@ export async function localRunBalances(run) {
  })));
 }
 
-export async function createLocalPaidResearch({ run, root, directory, arkiv = createArkivDirectory() }) {
+export async function readAgentRunHistory(run, agentId) {
+ const events = run.events.filter(event => event.agentId === agentId);
+ if (run.mode !== 'paid' || agentId === 'orchestrator') return { events, transactions: [] };
+ try {
+  const { manifest, publicClient } = await localDeployment(run.deployment);
+  const id = taskId(run, agentId);
+  // Each task event indexes its task ID in the second topic, including on older runs.
+  const logs = await publicClient.request({ method: 'eth_getLogs', params: [{
+   address: manifest.treasury, topics: [null, id], fromBlock: '0x0', toBlock: 'latest',
+  }] });
+  const transactions = parseEventLogs({ abi, logs: logs.map(log => formatLog(log)), strict: true })
+   .filter(log => log.args.taskId === id && !log.removed)
+   .sort((a, b) => a.blockNumber === b.blockNumber ? b.logIndex - a.logIndex : a.blockNumber > b.blockNumber ? -1 : 1)
+   .map(log => ({ type: log.eventName, transaction: log.transactionHash, block: log.blockNumber.toString(), index: log.logIndex }));
+  return { events, transactions };
+ } catch {
+  return { events, transactions: [], treasuryUnavailable: true };
+ }
+}
+
+export async function createLocalPaidResearch({ run, root, directory, arkiv = createArkivDirectory(), onWorkerTransaction = async () => {} }) {
  const { manifest, publicClient, endpoint, read, transport } = await localDeployment(run.deployment);
  const wallet = signer => createWalletClient({ chain, transport, account: signer });
  const owner = wallet(account(0)), initial = wallet(account(1));
  const key = process.env.ARKIV_WRITER_PRIVATE_KEY;
  const replacement = key ? wallet(privateKeyToAccount(key)) : null;
+ const trackTransactions = (client, agentId) => ({
+  ...client,
+  async writeContract(args) {
+   const transaction = await client.writeContract(args);
+   await onWorkerTransaction(agentId, transaction);
+   return transaction;
+  },
+ });
  const signerDirectory = path.join(root, 'signers');
  const withSigner = async (client, operation) => {
   let unlock;
@@ -65,7 +93,7 @@ export async function createLocalPaidResearch({ run, root, directory, arkiv = cr
    if (!walletClient || (task.cap !== '0' && !same(walletClient.account.address, task.worker))) throw new Error('No configured signer for the assigned worker');
    const runner = createCheckpointRunner({ directory: path.join(directory, 'paid'), publicClient, manifest, endpoint, taskId: id,
     steps: [{ id: 'treasury-reference', request }], validateResult, localMerchant: true });
-   result[agentId] = { runner, walletClient, withSigner, async replace(failedWorker) {
+   result[agentId] = { runner, walletClient: trackTransactions(walletClient, agentId), withSigner, async replace(failedWorker) {
     const authorize = address => same(replacement?.account.address, address)
      && ![manifest.owner, manifest.merchant, manifest.worker].some(reserved => same(reserved, address));
     const probe = async ({ message }) => ({ busy: false, signature: await replacement.signMessage({ message }) });
@@ -78,7 +106,7 @@ export async function createLocalPaidResearch({ run, root, directory, arkiv = cr
      if (await publicClient.getBalance({ address: replacement.account.address }) === 0n) {
       await confirmed(await owner.sendTransaction({ to: replacement.account.address, value: 10n ** 16n }));
      }
-     return { ...handoff, walletClient: replacement, assignment };
+     return { ...handoff, walletClient: trackTransactions(replacement, agentId), assignment };
     });
    } };
   }

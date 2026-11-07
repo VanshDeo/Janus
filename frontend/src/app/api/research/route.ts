@@ -7,7 +7,7 @@ import { defaultConfig } from '../../../../../backend/workbench/config.mjs';
 import { createRun, readRun, listRuns, controlRun } from '../../../../../backend/workbench/research.mjs';
 
 import { localDeployment, sourcePrice } from '../../../../../backend/workbench/local-deployment.mjs';
-import { localRunBalances } from '../../../../../backend/workbench/local-paid-research.mjs';
+import { localRunBalances, readAgentRunHistory } from '../../../../../backend/workbench/local-paid-research.mjs';
 
 const headers = { 'Cache-Control': 'no-store' };
 function workspace() {
@@ -37,15 +37,23 @@ export async function GET(request: Request) {
   try { user = await identity(request); } catch { return Response.json({ error: 'Sign in to view runs' }, { status: 401, headers }); }
   try {
     const { state } = workspace(), url = new URL(request.url), id = url.searchParams.get('id');
+    const agentId = url.searchParams.get('agentId');
+    if (agentId !== null && !/^[a-zA-Z0-9-]{1,64}$/.test(agentId)) return Response.json({ error: 'Invalid agent ID' }, { status: 400, headers });
     if (id) {
       const run = await readRun(state, user, id);
+      if (agentId) {
+        if (!run.config.agents.some((agent: { id: string }) => agent.id === agentId)) {
+          return Response.json({ error: 'Agent unavailable in this run' }, { status: 404, headers });
+        }
+        return Response.json({ history: await readAgentRunHistory(run, agentId) }, { headers });
+      }
       if (run.mode === 'paid') {
         try { run.tasks = await localRunBalances(run); }
         catch { run.treasuryUnavailable = true; }
       }
       return Response.json({ run }, { headers });
     }
-    const runs = await listRuns(state, user);
+    const runs = await listRuns(state, user, agentId);
     return Response.json({ paidSourcePrice: process.env.JANUS_MERCHANT_URL ? sourcePrice : null, runs: runs.map(({ id, question, status, mode, createdAt }: { id: string; question: string; status: string; mode: string; createdAt: string }) => ({ id, question, status, mode, createdAt })) }, { headers });
   } catch { return Response.json({ error: 'Run unavailable in this account' }, { status: 404, headers }); }
 }

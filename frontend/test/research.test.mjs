@@ -38,6 +38,15 @@ test('research routes enforce identity, billable consent, and account-private du
   assert.ok(result.report.text.includes('Research fixture report'));
   assert.ok(result.events.some(event => event.type === 'worker-replaced'));
   assert.equal((await (await GET(request(owner))).json()).runs[0].id, run.id);
+  const alphaQuery = '?agentId=alpha';
+  assert.deepEqual((await (await GET(request(owner, null, alphaQuery))).json()).runs.map(item => item.id), [run.id]);
+  assert.deepEqual((await (await GET(request(other, null, alphaQuery))).json()).runs, []);
+  assert.equal((await GET(request(other, null, alphaQuery + '&id=' + run.id))).status, 404);
+  assert.equal((await GET(request(owner, null, '?agentId=unknown&id=' + run.id))).status, 404);
+  const fixtureHistory = (await (await GET(request(owner, null, alphaQuery + '&id=' + run.id))).json()).history;
+  assert.ok(fixtureHistory.events.length > 0);
+  assert.ok(fixtureHistory.events.every(event => event.agentId === 'alpha'));
+  assert.deepEqual(fixtureHistory.transactions, []);
   if (process.env.JANUS_VERIFY_PAID) {
     const created = await POST(request(owner, { action: 'create', mode: 'paid', question: 'Research treasury task budgets.', holdPaidCheckpoint: true }));
     assert.equal(created.status, 201);
@@ -52,6 +61,11 @@ test('research routes enforce identity, billable consent, and account-private du
       }
       assert.equal(current.workers.alpha?.status, 'paid-checkpoint', current.error);
       assert.equal(current.tasks.alpha.spent, '20000');
+      const { history } = await (await GET(request(owner, null, alphaQuery + '&id=' + paid.id))).json();
+      assert.deepEqual(history.transactions.map(transaction => transaction.type), ['Paid', 'Reserved', 'TaskCreated']);
+      const reservation = history.events.find(event => event.type === 'reservation-submitted');
+      assert.equal(reservation.transaction, history.transactions[1].transaction);
+      assert.deepEqual((await (await GET(request(owner, null, alphaQuery))).json()).runs.map(item => item.id), [paid.id, run.id]);
       const control = { action: 'continue', id: paid.id, agentId: 'alpha', attempt: current.workers.alpha.attempt };
       assert.equal((await POST(request(other, control))).status, 400);
       assert.equal((await POST(request(owner, { ...control, attempt: 99 }))).status, 400);

@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { build } from '../../contracts/node_modules/esbuild/lib/main.js';
 import { chromium } from '../../contracts/node_modules/playwright/index.mjs';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { createLocalPaidResearch, localRunBalances } from '../../backend/workbench/local-paid-research.mjs';
+import { createLocalPaidResearch, localRunBalances, readAgentRunHistory } from '../../backend/workbench/local-paid-research.mjs';
 import { localDeployment, sourcePrice } from '../../backend/workbench/local-deployment.mjs';
 import { GET as integrations } from '../src/app/api/integrations/route.ts';
 import { defaultConfig, validateWorkbenchConfig } from '../../backend/workbench/config.mjs';
@@ -54,6 +54,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (url.pathname === '/api/research') {
+      const agentId = url.searchParams.get('agentId');
       const launch = id => {
         const promise = executeResearch({ root: directory, user, id, createPaidTools });
         pending.add(promise);
@@ -73,9 +74,12 @@ const server = http.createServer(async (req, res) => {
         }
       } else if (url.searchParams.has('id')) {
         const run = await readRun(directory, user, url.searchParams.get('id'));
-        if (run.mode === 'paid') run.tasks = await localRunBalances(run);
-        data = { run };
-      } else data = { runs: await listRuns(directory, user), paidSourcePrice: paid ? sourcePrice : null };
+        if (agentId) data = { history: await readAgentRunHistory(run, agentId) };
+        else {
+          if (run.mode === 'paid') run.tasks = await localRunBalances(run);
+          data = { run };
+        }
+      } else data = { runs: await listRuns(directory, user, agentId), paidSourcePrice: paid ? sourcePrice : null };
       res.setHeader('Content-Type','application/json'); res.end(JSON.stringify(data)); return;
     }
     if (url.pathname.startsWith('/assets/')) { res.setHeader('Content-Type', 'image/webp'); res.end(await fs.readFile(path.join(root, 'frontend/public', url.pathname))); return; }
@@ -95,7 +99,12 @@ try {
   await page.getByLabel('Name',{exact:true}).fill('Evidence reviewer');
   await page.getByLabel('Research responsibility').fill('Review supplied evidence and identify unsupported conclusions.');
   await page.getByRole('button',{name:'Save agent',exact:true}).click();
-  await page.getByRole('heading',{name:'Evidence reviewer',exact:true}).waitFor();
+  await page.getByRole('button',{name:'View history for Evidence reviewer',exact:true}).click();
+  const reviewerHistory = page.getByRole('dialog', { name: 'Evidence reviewer history' });
+  await reviewerHistory.getByText('This agent has no saved runs.').waitFor();
+  await page.keyboard.press('Escape');
+  await reviewerHistory.waitFor({ state: 'hidden' });
+  assert.equal(await page.getByRole('button', { name: /^View history for / }).count(), 5);
   await page.getByRole('button',{name:'Runs',exact:true}).click();
   if (paid) await page.getByLabel('Execution mode').selectOption('paid');
   await page.getByRole('button',{name:'Start run',exact:true}).click();
@@ -135,6 +144,21 @@ try {
     assert.equal(task.reserved, '0');
   }
   await page.getByRole('heading',{name:'Final report',exact:true}).waitFor({timeout:20000});
+  await page.getByRole('button', { name: 'View history for Alpha', exact: true }).click();
+  const alphaHistory = page.getByRole('dialog', { name: 'Alpha history' });
+  await alphaHistory.getByRole('region', { name: 'Agent activity' }).getByText('worker started', { exact: true }).first().waitFor();
+  const ledger = alphaHistory.getByRole('region', { name: 'Task transactions' });
+  if (paid) {
+    for (const label of ['Task created', 'Budget reserved', 'Payment settled', 'Worker assigned']) {
+      const item = ledger.getByRole('listitem').filter({ hasText: label });
+      const link = item.getByRole('link', { name: /View transaction receipt/ });
+      assert.match(await link.innerText(), /^0x[0-9a-f]{64}$/i);
+      const receipt = await page.request.get(new URL(await link.getAttribute('href'), page.url()).href);
+      assert.equal(receipt.status(), 200);
+      assert.equal((await receipt.json()).transactionHash, await link.innerText());
+    }
+  } else await ledger.getByText('No confirmed task transactions for this run.').waitFor();
+  await alphaHistory.getByRole('button', { name: 'Close agent history' }).click();
   await page.getByLabel('Filter activity by agent').selectOption('alpha');
   if (!paid) assert.ok(await page.getByText('artifact reused',{exact:true}).count());
   await page.getByLabel('Filter activity by agent').selectOption('all');
