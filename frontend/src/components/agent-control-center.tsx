@@ -24,8 +24,9 @@ export default function AgentControlCenter({ view }: { view: 'Agents' | 'Runs' |
   const [agent, setAgent] = useState<Agent | null>(null), [provider, setProvider] = useState('openai'), [label, setLabel] = useState(''), [key, setKey] = useState('');
   const [runs, setRuns] = useState<RunSummary[]>([]), [run, setRun] = useState<Run | null>(null), [runId, setRunId] = useState('');
   const [question, setQuestion] = useState('Compare the benefits and limitations of task-owned budgets for research agents.');
-  const [mode, setMode] = useState('fixture'), [billing, setBilling] = useState(false), [interrupt, setInterrupt] = useState(true);
-  const [paidSourcePrice, setPaidSourcePrice] = useState<string | null>(null), [holdPaidCheckpoint, setHoldPaidCheckpoint] = useState(true);
+  const [selectedMode, setMode] = useState<string | null>(null), [billing, setBilling] = useState(false), [interrupt, setInterrupt] = useState(true);
+  const [paidSourcePrice, setPaidSourcePrice] = useState<string | null | undefined>(undefined), [holdPaidCheckpoint, setHoldPaidCheckpoint] = useState(true);
+  const mode = selectedMode ?? (paidSourcePrice ? 'paid' : 'fixture');
   const [filter, setFilter] = useState('all');
   const [profiles, setProfiles] = useState<{ entityKey: string; name: string; owner: string; worker: string; capabilities: string }[] | null>(null);
   const [network, setNetwork] = useState<{ chainId: number; deploymentPresent: boolean } | null>(null);
@@ -107,7 +108,7 @@ export default function AgentControlCenter({ view }: { view: 'Agents' | 'Runs' |
           <label>Research question<textarea rows={3} required minLength={10} maxLength={6000} value={question} onChange={event => setQuestion(event.target.value)} /></label>
           <label>Execution mode<select value={mode} onChange={event => { setMode(event.target.value); setBilling(false); }}><option value="fixture">Local fixture · no provider calls</option><option value="llm">Live models · your saved API keys</option>{paidSourcePrice && <option value="paid">Local paid research · test tokens</option>}</select></label>
           {mode === 'paid' ? <><p>Each worker can spend {paidSourcePrice} local test-token base units on one treasury reference source.</p><label className="agent-checkbox"><input type="checkbox" checked={holdPaidCheckpoint} onChange={event => setHoldPaidCheckpoint(event.target.checked)} />Wait at the first paid checkpoint for manual interruption</label></> : mode === 'fixture' ? <label className="agent-checkbox"><input type="checkbox" checked={interrupt} onChange={event => setInterrupt(event.target.checked)} />Interrupt first worker after checkpoint; demonstrate replacement</label> : <label className="agent-checkbox"><input type="checkbox" checked={billing} onChange={event => setBilling(event.target.checked)} />I approve provider billing: one planning call, one per active worker, and one report call (up to 800 output tokens each).</label>}
-          <button className="btn-secondary-pill" disabled={busy || !config || (mode === 'llm' && !billing)}><Play size={14} />Start run</button>
+          <button className="btn-secondary-pill" disabled={busy || !config || paidSourcePrice === undefined || (mode === 'llm' && !billing)}><Play size={14} />Start run</button>
         </form><p className="agent-muted">Local paid research uses the configured merchant and a funded local treasury. Live model calls use your provider account.</p>
       </section><section className="spotlight-card"><h3>Saved runs</h3><div className="agent-run-list">{runs.length === 0 && <p className="agent-muted">Your research runs will appear here.</p>}{runs.map(item => <button aria-pressed={runId === item.id} className="agent-run-option" key={item.id} onClick={() => { setRunId(item.id); setFilter('all'); }}><span>{item.question}</span><small>{item.status} · {modeLabel(item.mode)}</small></button>)}</div></section></div>
       {run && <>

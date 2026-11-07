@@ -25,7 +25,7 @@ Optional Privy login: copy `.env.compose.example` to `.env`, set your applicatio
 
 ## Paid research and recovery
 
-With Privy configured, open **Runs**, choose **Local paid research** and start a run. Each worker buys one TaskTreasury reference from a 20,000-unit local task budget. Run cards read available, reserved and spent units from the same deployment used by the merchant. The treasury panel uses the published loopback RPC and that deployment.
+With Privy configured, open **Runs** and start a run in the default **Local paid research** mode. Each worker buys one TaskTreasury reference from a 20,000-unit local task budget. Run cards read available, reserved and spent units from the same deployment used by the merchant. The treasury panel uses the published loopback RPC and that deployment.
 
 To test recovery with live Arkiv records, configure a dedicated Rabdi test wallet in the Compose environment and in the Arkiv CLI environment. Publish a fresh profile before running the test:
 
