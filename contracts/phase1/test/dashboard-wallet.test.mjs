@@ -50,7 +50,15 @@ test('dashboard confirms authoritative balances and wallet actions before indepe
   b.onLoad({filter:/shared[\\/](network|deployments[\\/]hedera-testnet)\.json$/},args=>({contents:JSON.stringify(args.path.endsWith('network.json')?network:manifest),loader:'json'}));
  }}]});
  let available=true;
- const server=http.createServer((req,res)=>{res.setHeader('content-type',req.url==='/bundle.js'?'text/javascript':'text/html');res.end(req.url==='/bundle.js'?bundled.outputFiles[0].contents:'<html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
+ const server = http.createServer((req, res) => {
+  if (req.url === '/api/integrations') {
+   res.setHeader('content-type', 'application/json');
+   res.end(JSON.stringify({ deployment: manifest, rpcPort: rpc.address().port }));
+   return;
+  }
+  res.setHeader('content-type', req.url === '/bundle.js' ? 'text/javascript' : 'text/html');
+  res.end(req.url === '/bundle.js' ? bundled.outputFiles[0].contents : '<html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');
+ });
  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>{if(available){server.closeAllConnections();server.close();}});
  browser=await chromium.launch({headless:true,...(process.env.JANUS_CHROMIUM_PATH?{executablePath:process.env.JANUS_CHROMIUM_PATH}:{})});
  const evidence = process.env.JANUS_CROPS_EVIDENCE;

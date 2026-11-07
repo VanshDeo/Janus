@@ -10,7 +10,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,12 +34,30 @@ jobs:
       - name: Verify authoritative treasury dashboard and independent exit
         run: npm run dashboard:test:browser --prefix contracts
 
+  compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+            contracts/package-lock.json
+      - run: npm run setup
+      - name: Install dashboard test browser
+        working-directory: contracts
+        run: npx playwright install --with-deps chromium
       - name: Verify shared Compose deployment and paid dashboard
         env:
           JANUS_MERCHANT_URL: http://127.0.0.1:4023
           JANUS_RPC_URL: http://127.0.0.1:8545
           JANUS_VERIFY_PAID: fixture
         run: |
+          mkdir -p contracts/phase1/artifacts
           docker compose up --build --wait
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
