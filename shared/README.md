@@ -27,3 +27,7 @@ Use [ARKIV.md](ARKIV.md) for wallet setup, independent queries, discovery-driven
 ## Funded Arkiv discovery verified
 
 On 7 November 2026 the dedicated Rabdi writer published two expiring profiles. Independent CLI and actual React/SDK reads found the Hedera-compatible record; the live-discovery/local-finance handoff selected the other profile, confirmed epoch 2, preserved unrelated tasks and reused the original paid result. [Publication, query, receipt and browser evidence](../backend/arkiv/evidence/2026-11-07/README.md) labels the boundaries. This clears the former empty-writer/funded-publication blocker. Entities expire after one hour; there is one writer, no external adoption measurement, no new live Hedera payment and no claim that browser research-run reassignment or all sponsor requirements are complete.
+
+## Successful payment receipts
+
+Successful agent payments now show the full transaction hash and a network-checked HashScan testnet link on agent cards, activity and selected run history.

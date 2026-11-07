@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { RefreshCw, X } from 'lucide-react';
+import { hashScanTransaction } from '@/lib/payment-receipts.mjs';
 
 export type RunSummary = { id: string; question: string; status: string; mode: string; createdAt: string };
 export type RunEvent = {
@@ -25,14 +26,14 @@ const transactionLabels: Record<string, string> = {
 
 function ReceiptLink({ transaction }: { transaction: string }) {
   return (
-    <a className="agent-transaction-hash" href={'/api/integrations?receipt=' + encodeURIComponent(transaction)}
+    <a className="agent-transaction-hash" href={'https://hashscan.io/testnet/transaction/' + encodeURIComponent(transaction)}
       target="_blank" rel="noreferrer" aria-label={`View transaction receipt ${transaction}`}>
       <code>{transaction}</code>
     </a>
   );
 }
 
-export function AgentActivity({ events, agents = [], linkReceipts }: { events: RunEvent[]; agents?: Agent[]; linkReceipts: boolean }) {
+export function AgentActivity({ events, agents = [], linkReceipts, chainId }: { events: RunEvent[]; agents?: Agent[]; linkReceipts: boolean; chainId?: number }) {
   if (!events.length) return <p className="agent-muted">No activity recorded for this selection.</p>;
   return (
     <ol className="agent-timeline" aria-live="polite">
@@ -45,7 +46,7 @@ export function AgentActivity({ events, agents = [], linkReceipts }: { events: R
             <small>{agents.find(agent => agent.id === event.agentId)?.name}{agents.length ? ' · ' : ''}
               {new Date(event.at).toLocaleTimeString()}{event.pid ? ` · process ${event.pid}` : ''}</small>
             {event.transaction && (
-              <p>{linkReceipts ? <ReceiptLink transaction={event.transaction} /> : <code className="agent-transaction-hash">{event.transaction}</code>}</p>
+              <div>{linkReceipts ? <ReceiptLink transaction={event.transaction} /> : <code className="agent-transaction-hash">{event.transaction}</code>}{hashScanTransaction(event.transaction, chainId) && <p><a href={hashScanTransaction(event.transaction, chainId)!} target="_blank" rel="noopener noreferrer">View on HashScan ↗</a></p>}</div>
             )}
             {event.entityKey && <p><a href={'https://rabdi.explorer.arkiv.network/entity/' + encodeURIComponent(event.entityKey)}
               target="_blank" rel="noreferrer">Arkiv record {event.entityKey.slice(0, 12)}…</a></p>}
@@ -56,8 +57,8 @@ export function AgentActivity({ events, agents = [], linkReceipts }: { events: R
   );
 }
 
-export default function AgentHistory({ agent, initialRunId, request, onClose }: {
-  agent: Agent; initialRunId?: string; request: HistoryRequest; onClose: () => void;
+export default function AgentHistory({ agent, initialRunId, request, onClose, chainId }: {
+  agent: Agent; initialRunId?: string; request: HistoryRequest; onClose: () => void; chainId?: number;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [runs, setRuns] = useState<RunSummary[] | null>(null);
@@ -132,7 +133,7 @@ export default function AgentHistory({ agent, initialRunId, request, onClose }: 
               </section>
               <section className="agent-history-section" aria-label="Agent activity">
                 <h3>Agent activity</h3>
-                <AgentActivity events={current.history.events} linkReceipts={selected.mode === 'paid'} />
+                <AgentActivity events={current.history.events} linkReceipts={selected.mode === 'paid'} chainId={selectedId === initialRunId ? chainId : undefined} />
               </section>
             </>
           )}

@@ -43,3 +43,7 @@
 .agent-control-center.agent-history-dialog { width: min(680px,90vw); }
 .agent-history-section { margin-top: 24px; }
 @media(max-width:700px) { .agent-control-center .dashboard-two-col-grid, .agent-control-center .dashboard-metrics-grid { grid-template-columns: 1fr; } .agent-control-center .spotlight-card { padding: 20px; } }
+
+.agent-payment-receipt { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; padding: 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; font-size: 12px; }
+.agent-payment-receipt code { display: block; overflow-wrap: anywhere; word-break: break-all; font-size: 11px; }
+.agent-payment-receipt > span { color: #a1a1aa; }

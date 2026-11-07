@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Bot, Plus, ArrowRight, KeyRound, X, Play, Pause, RefreshCw, Archive, Activity, GitBranch } from 'lucide-react';
 import { targetChain, useRelayAuth } from '@/context/privy-auth-context';
+import PaymentReceipt from './payment-receipt';
+import { agentPaymentReceipts } from '@/lib/payment-receipts.mjs';
 import AgentHistory, { AgentActivity, type RunEvent, type RunSummary } from './agent-history';
 import './agent-control-center.css';
 
@@ -10,7 +12,7 @@ type Agent = { id: string; name: string; responsibility: string; credentialId: s
 type Config = { workflow: 'research-v1'; agents: Agent[] };
 type Credential = { id: string; label: string; provider: string };
 type Artifact = { text: string; agentId: string; provider: string; model: string; requestId: string | null; step: string };
-type Run = RunSummary & { config: Config; events: RunEvent[]; workers: Record<string, { status: string; attempt: number; pid: number | null; heartbeat: string | null }>; artifacts: Record<string, Artifact>; report: Artifact | null; error?: string; treasuryUnavailable?: boolean; tasks?: Record<string, { id: string; worker: string; epoch: string; available: string; reserved: string; spent: string } | null> };
+type Run = RunSummary & { testnet?: {chainId:number}; financial?: {chainId:number;tasks?:Record<string,{id:string}>;payments?:{transaction:string;taskId?:string}[]}; config: Config; events: RunEvent[]; workers: Record<string, { status: string; attempt: number; pid: number | null; heartbeat: string | null }>; artifacts: Record<string, Artifact>; report: Artifact | null; error?: string; treasuryUnavailable?: boolean; tasks?: Record<string, { id: string; worker: string; epoch: string; available: string; reserved: string; spent: string } | null> };
 const providers = ['openai', 'anthropic', 'gemini', 'openrouter', 'groq', 'nvidia'];
 const emptyAgent = (): Agent => ({ id: crypto.randomUUID(), name: '', responsibility: '', credentialId: '', model: '' });
 const modeLabel = (mode: string) => ({ fixture: 'Local fixture', llm: 'Live models', paid: 'Local paid research' })[mode] || mode;
@@ -126,6 +128,7 @@ export default function AgentControlCenter({ view }: { view: 'Agents' | 'Runs' |
           <p className="agent-muted">{item.responsibility}</p><dl className="agent-facts"><div><dt>Process</dt><dd>{state?.pid ?? 'Supervisor'}</dd></div><div><dt>Heartbeat</dt><dd>{state?.heartbeat ? new Date(state.heartbeat).toLocaleTimeString() : "—"}</dd></div><div><dt>Attempt</dt><dd>{state?.attempt ?? 1}</dd></div><div><dt>Artifacts</dt><dd>{Object.values(run.artifacts).filter(a => a.agentId === item.id).length}</dd></div>
           {task && <><div><dt>Available</dt><dd>{task.available}</dd></div><div><dt>Reserved</dt><dd>{task.reserved}</dd></div><div><dt>Spent</dt><dd>{task.spent}</dd></div><div><dt>Epoch</dt><dd>{task.epoch}</dd></div></>}
           </dl>
+          <div aria-label={`${item.name} successful payments`} aria-live="polite">{agentPaymentReceipts(run.events,item.id,run.financial?.payments??[],run.financial?.tasks?.[item.id]?.id??task?.id).map(payment=><PaymentReceipt key={payment.transaction} transaction={payment.transaction} chainId={run.financial?.chainId??run.testnet?.chainId} confirmed />)}</div>
           {task && <details><summary>Local treasury task · test-token base units</summary><p className="agent-muted">Task {task.id}<br />Worker {task.worker}</p></details>}
           {run.status === 'running' && state && ['running', 'paid-checkpoint'].includes(state.status) && <div className="agent-actions">
             <button className="btn-secondary-pill" disabled={busy} onClick={() => controlWorker('interrupt')}>Interrupt worker</button>
@@ -133,13 +136,13 @@ export default function AgentControlCenter({ view }: { view: 'Agents' | 'Runs' |
           </div>}
         </article>; })}</div>
         <section className="spotlight-card"><div className="agent-section-bar"><h3><Activity size={16} /> Activity timeline</h3><label className="agent-filter">Filter agent<select aria-label="Filter activity by agent" value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All agents</option>{run.config.agents.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label></div>
-          <AgentActivity events={filteredEvents} agents={run.config.agents} linkReceipts={run.mode === 'paid'} />
+          <AgentActivity events={filteredEvents} agents={run.config.agents} linkReceipts={run.mode === 'paid'} chainId={run.financial?.chainId??run.testnet?.chainId} />
         </section>
         <section className="spotlight-card"><h3>Research artifacts</h3>{Object.values(run.artifacts).map(artifact => <details key={artifact.step}><summary>{run.config.agents.find(item => item.id === artifact.agentId)?.name} · {artifact.step} · {artifact.provider}</summary><pre className="agent-artifact">{artifact.text}</pre><small className="agent-muted">{artifact.model} · request {artifact.requestId || 'local fixture'}</small></details>)}</section>
         {run.report && <section className="spotlight-card"><h3>Final report</h3><pre className="agent-artifact">{run.report.text}</pre></section>}
       </>}
     </>}
-    {history && <AgentHistory agent={history.agent} initialRunId={history.runId} request={request} onClose={() => setHistory(null)} />}
+    {history && <AgentHistory agent={history.agent} initialRunId={history.runId} chainId={history.runId===run?.id?(run?.financial?.chainId??run?.testnet?.chainId):undefined} request={request} onClose={() => setHistory(null)} />}
     <dialog ref={dialog} className="task-dialog agent-control-center" onCancel={() => setAgent(null)} onClick={event => { if (event.target === event.currentTarget) setAgent(null); }}>
       {agent && <form onSubmit={event => { event.preventDefault(); void action(async () => { if (!config) return; const exists = agents.some(item => item.id === agent.id); await save({ ...config, agents: exists ? agents.map(item => item.id === agent.id ? agent : item) : [...agents, agent] }); setAgent(null); }); }}>
         <div className="agent-section-bar"><h2>{agents.some(item => item.id === agent.id) ? 'Configure agent' : 'Create agent'}</h2><button type="button" className="btn-secondary-pill" aria-label="Close agent form" onClick={() => setAgent(null)}><X size={16} /></button></div>
