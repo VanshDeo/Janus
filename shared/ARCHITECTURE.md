@@ -1,5 +1,16 @@
 # Janus module boundaries
 
+The official native Hedera x402 path is separate from the task executor:
+[native exact setup and boundaries](NATIVE_X402.md). It uses a native signed
+transfer and dedicated payer/facilitator identities; treasury caps/epochs remain
+properties of the existing TaskTreasury integration.
+
+Sponsor artifacts and qualification limits live in
+[SUBMISSION_STATUS.md](../docs/SUBMISSION_STATUS.md). The CROPS recording bundles
+the real dashboard and static recovery UI with local-only deployment/auth fixtures;
+its independent host survives dashboard shutdown. No hosted authentication SDK
+is included in the independent recovery bundle.
+
 ## Research workspace boundary
 
 `frontend/src/components/dashboard-shell.tsx` preserves the unified dashboard shell; `agent-control-center.tsx` owns agent creation, credentials, runs, monitoring and Hedera/Arkiv preparation. `api/workbench` verifies Privy identity and stores encrypted credentials/configuration through `backend/workbench/store.mjs`; it cannot launch processes or execute runs. The separate authenticated `api/research` route starts a detached fixed supervisor in `backend/workbench/`. It brokers fixed-endpoint model calls, manages separate worker processes and persists account-private events/artifacts; it does not submit financial transactions. See [DASHBOARD_RUNTIME.md](DASHBOARD_RUNTIME.md). `backend/runner/` and `backend/hedera/` retain the paid task/checkpoint path described in [demo.md](../demo.md). Arkiv profiles advertise research capability without granting spending authority. See [WORKBENCH.md](WORKBENCH.md).

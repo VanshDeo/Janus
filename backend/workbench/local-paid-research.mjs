@@ -66,7 +66,8 @@ export async function createLocalPaidResearch({ run, root, directory, arkiv = cr
    const runner = createCheckpointRunner({ directory: path.join(directory, 'paid'), publicClient, manifest, endpoint, taskId: id,
     steps: [{ id: 'treasury-reference', request }], validateResult, localMerchant: true });
    result[agentId] = { runner, walletClient, withSigner, async replace(failedWorker) {
-    const authorize = address => same(replacement?.account.address, address);
+    const authorize = address => same(replacement?.account.address, address)
+     && ![manifest.owner, manifest.merchant, manifest.worker].some(reserved => same(reserved, address));
     const probe = async ({ message }) => ({ busy: false, signature: await replacement.signMessage({ message }) });
     return withSigner(owner, async () => {
      const handoff = await handoffFromArkiv({ runner, directory: arkiv, publicClient, manifest, taskId: id,

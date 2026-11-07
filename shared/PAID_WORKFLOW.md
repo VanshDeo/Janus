@@ -1,5 +1,10 @@
 # Task-aware paid merchant
 
+Platform durability: files are fsynced before atomic rename. POSIX also fsyncs
+the parent directory; Windows does not support directory-handle fsync and uses
+file fsync/rename for process-crash recovery only. No Windows power-loss guarantee
+is claimed. Unknown payment outcomes and crash locks still fail closed.
+
 The task SDK (`backend/hedera/lib/task-client.mjs`) requests a merchant-signed quote, validates deployment/chain/asset identity and quote signature, reserves under the current epoch, then submits the 96-byte authorization with a short-lived worker signature. Logical step identity excludes the worker/epoch. Current worker or owner signatures authenticate result access; old workers lose retrieval authority after reassignment. The owner remains the trust root.
 
 `task-merchant.mjs` validates the manifest, task merchant, fixed route/price, canonical request hash, amount and reservation attempt. It submits `executeTransfer` only against an observed reservation and confirms a successful receipt plus the matching Paid event. Reconciliation uses contract operation state and Paid logs. Contract runtime identity is pinned; the reviewed contract itself verifies exact payer debit and merchant credit. New tests independently read the merchant token balance. This phase produces local EVM evidence, not fresh Hedera HTS consensus-child-record verification.

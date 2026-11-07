@@ -1,0 +1,724 @@
+{
+  "status": "passed",
+  "network": "local EVM 1337",
+  "wallet": "injected test EIP-1193 adapter; not a manual extension-wallet test",
+  "dashboardStopped": true,
+  "actualStaticRecoveryPage": true,
+  "withdrawnBeforeExpiry": "990",
+  "withdrawnAfterExpiry": "1000",
+  "requests": [
+    {
+      "url": "http://127.0.0.1:60678/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:60678/bundle.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:56268/",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:56268/recovery.js",
+      "method": "GET"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    },
+    {
+      "url": "http://127.0.0.1:49673/",
+      "method": "POST"
+    }
+  ],
+  "liveFunds": false
+}

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { canonicalJson, decodeAuthorization } from '../../../shared/protocol.mjs';
+import { syncDirectory } from '../../lib/fs-durability.mjs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 
@@ -29,8 +30,7 @@ export function createOperationStore({ directory, authenticate, reconcile, submi
         const file = await fs.open(temporary, 'w', 0o600);
         try { await file.writeFile(JSON.stringify(value) + '\n'); await file.sync(); } finally { await file.close(); }
         await fs.rename(temporary, target);
-        const parent = await fs.open(directory, 'r');
-        try { await parent.sync(); } finally { await parent.close(); }
+        await syncDirectory(directory);
       };
       try {
         let record;

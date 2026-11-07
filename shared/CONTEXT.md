@@ -1,5 +1,17 @@
 # Janus product and current context
 
+Sponsor qualification work is tracked in [SUBMISSION_STATUS.md](../docs/SUBMISSION_STATUS.md).
+The root MIT license and README CROPS disclosure are present. A short local
+browser video demonstrates the actual static recovery page after dashboard
+shutdown. Authenticated Privy analytics, final submission actions and asset
+provenance remain explicit gaps; documentation is not sponsor approval.
+
+Privy is retained with wallet-only sign-in at the team's request; email login and
+automatic embedded-wallet creation are disabled. Official native x402 code and
+offline SDK regressions now exist separately from TaskTreasury; fresh live
+native acceptance/video awaits dedicated funded testnet credentials. See
+[NATIVE_X402.md](NATIVE_X402.md).
+
 ## Research-task workspace
 
 The current implementation follows [demo.md](../demo.md): task-owned budgets, paid-source reuse, checkpointed worker handoff and independent owner recovery. `/dashboard/agents` creates/configures workers and `/dashboard/runs` executes and monitors parallel research; `/dashboard/credentials` retains encrypted provider-key storage. User-key provider brokerage is connected to the separate research runtime; live provider calls remain unverified. The paid checkpoint runner is not yet wired into browser research steps. Arkiv v2 profile publication/query now feeds operator-triggered checkpoint replacement with owner policy and signed readiness. Local fixture-directory handoff and a live independent query pass; funded testnet publication, remote worker transport and combined live evidence remain pending. See [ARKIV.md](ARKIV.md). Read-only Hedera checks remain available. See [WORKBENCH.md](WORKBENCH.md) and [DASHBOARD_RUNTIME.md](DASHBOARD_RUNTIME.md).

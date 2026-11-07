@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
+import path from 'node:path';
 import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
@@ -12,8 +13,16 @@ import { createPublicClient, createWalletClient, custom, defineChain, keccak256,
 // Browser tooling may be supplied by the developer/CI without a runtime dependency.
 const { chromium } = await import(process.env.JANUS_PLAYWRIGHT_MODULE || 'playwright');
 test('dashboard confirms authoritative balances and wallet actions before independent offline-app recovery', async t => {
- const rpc = ganache.server({ logging: { quiet: true }, wallet: { deterministic: true }, chain: { chainId: 1337, hardfork: 'shanghai' } });
- await rpc.listen(0,'127.0.0.1'); t.after(() => rpc.close());
+ try {
+ let browser;
+ const directory = await fs.mkdtemp(fileURLToPath(new URL('../artifacts/dashboard-browser-',import.meta.url)));
+ const rpc = ganache.server({ database:{dbPath:path.join(directory,'chain')}, logging: { quiet: true }, wallet: { deterministic: true }, chain: { chainId: 1337, hardfork: 'shanghai' } });
+ await rpc.listen(0,'127.0.0.1'); t.after(async () => {
+  await browser?.close(); await rpc.close();
+  // Ganache/LevelDB can retain Windows file handles after close. Keep these
+  // fixture-only files in ignored artifacts; never suppress assertion failures.
+  if(process.platform!=='win32') await fs.rm(directory,{recursive:true,force:true});
+ });
  const provider = rpc.provider, addresses = await provider.request({ method: 'eth_accounts', params: [] });
  const chain = defineChain({ id: 1337, name: 'Local recovery test', nativeCurrency: { name: 'Local Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: [`http://127.0.0.1:${rpc.address().port}`] } } });
  const client = createPublicClient({ chain, transport: custom(provider), cacheTime: 0, pollingInterval: 10 });
@@ -33,19 +42,23 @@ test('dashboard confirms authoritative balances and wallet actions before indepe
  const descriptor=JSON.parse(await fs.readFile(new URL('../../../shared/treasury-interface.json',import.meta.url),'utf8'));
  const manifest={interfaceVersion:descriptor.interfaceVersion,abiHash:descriptor.abiHash,mode:'local',chainId:1337,treasury,token,owner:addresses[0],runtimeCodeHash:keccak256(await client.getBytecode({address:treasury}))};
  const network={...chain,chainId:1337,token:{address:token}};
- const directory = await fs.mkdtemp('/private/tmp/janus-treasury-ui-'); t.after(()=>fs.rm(directory,{recursive:true,force:true}));
  const root = fileURLToPath(new URL('../../../',import.meta.url));
  const auth = `export const useRelayAuth=()=>({walletAddress:'${addresses[0]}',getWalletProvider:async()=>window.ethereum});`;
  const bundled = await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Panel from './src/components/treasury-panel';createRoot(document.getElementById('root')).render(<Panel/>);`,resolveDir:root+'frontend',loader:'tsx'},bundle:true,jsx:'automatic',write:false,alias:{'@':root+'frontend/src'},plugins:[{name:'fixture',setup(b){
  b.onResolve({filter:/privy-auth-context/},()=>({path:'auth',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:auth,loader:'js'}));
- b.onLoad({filter:/shared\/(network|deployments\/hedera-testnet)\.json$/},args=>({contents:JSON.stringify(args.path.endsWith('network.json')?network:manifest),loader:'json'}));
+  b.onLoad({filter:/shared[\\/](network|deployments[\\/]hedera-testnet)\.json$/},args=>({contents:JSON.stringify(args.path.endsWith('network.json')?network:manifest),loader:'json'}));
  }}]});
  let available=true;
  const server=http.createServer((req,res)=>{res.setHeader('content-type',req.url==='/bundle.js'?'text/javascript':'text/html');res.end(req.url==='/bundle.js'?bundled.outputFiles[0].contents:'<html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
  server.listen(0,'127.0.0.1');await once(server,'listening');t.after(()=>{if(available){server.closeAllConnections();server.close();}});
- const browser=await chromium.launch({headless:true,...(process.env.JANUS_CHROMIUM_PATH?{executablePath:process.env.JANUS_CHROMIUM_PATH}:{})});t.after(()=>browser.close());
- const page=await browser.newPage();let rejectTransaction=false,sends=0;
+ browser=await chromium.launch({headless:true,...(process.env.JANUS_CHROMIUM_PATH?{executablePath:process.env.JANUS_CHROMIUM_PATH}:{})});
+ const evidence = process.env.JANUS_CROPS_EVIDENCE;
+ if(evidence) await fs.mkdir(evidence,{recursive:true});
+ const context=await browser.newContext({viewport:{width:1280,height:900},...(evidence?{recordVideo:{dir:evidence,size:{width:1280,height:900}}}:{})});
+ const page=await context.newPage();let rejectTransaction=false,sends=0;
+ const requests=[];page.on('request',request=>requests.push({url:request.url(),method:request.method()}));
+ const scene=async text=>{if(!evidence)return;await page.evaluate(text=>{let banner=document.getElementById('demo-caption');if(!banner){banner=document.createElement('div');banner.id='demo-caption';banner.style='position:fixed;top:0;left:0;right:0;padding:16px;background:#123;color:white;z-index:99999;font:20px system-ui';document.body.prepend(banner);document.body.style.paddingTop='70px';}banner.textContent=text;},text);await page.waitForTimeout(2500);};
  await page.exposeFunction('fixtureWalletRequest',async({method,params})=>{
  if(method==='eth_accounts'||method==='eth_requestAccounts')return[addresses[0]];
  if(method==='wallet_sendTransaction')method='eth_sendTransaction';
@@ -53,6 +66,7 @@ test('dashboard confirms authoritative balances and wallet actions before indepe
  return provider.request({method,params:params??[]});});
  await page.addInitScript(()=>{window.ethereum={request:args=>window.fixtureWalletRequest(args)};});
  await page.goto(`http://127.0.0.1:${server.address().port}`);
+ await scene('JANUS · LOCAL EVM PROOF · Real contracts, test wallet. No live funds.');
  const refresh=async()=>{await page.getByRole('button',{name:'Refresh chain state'}).click();await page.getByRole('status').filter({hasText:'Confirmed chain state loaded.'}).waitFor();};
  await refresh();assert.match(await page.locator('body').innerText(),/90/);assert.match(await page.locator('body').innerText(),/Reserved/);
  assert.equal(await page.getByRole('button',{name:'Cancel task',exact:true}).isDisabled(),true);
@@ -68,15 +82,38 @@ test('dashboard confirms authoritative balances and wallet actions before indepe
  assert.equal((await client.readContract({address:treasury,abi,functionName:'tasks',args:[task]}))[1],0n);
  await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Withdraw entire reserve',exact:true}).click();await page.getByRole('status').filter({hasText:'State refreshed.'}).waitFor();
  assert.equal(await client.readContract({address:treasury,abi,functionName:'totalWithdrawn'}),990n);
+ await scene('990 units withdrawn; 10 remain reserved. Cancellation cannot erase a merchant obligation.');
  await page.screenshot({path:directory+'/dashboard.png',fullPage:true});
- // Shut down the entire dashboard host. Recovery imports no application service.
+ // Independently host the actual static recovery page, then stop the dashboard.
+ const recoveryBundle=await build({entryPoints:[fileURLToPath(new URL('../browser/main.mjs',import.meta.url))],bundle:true,platform:'browser',target:'es2022',write:false,plugins:[{name:'local-recovery-only',setup(b){b.onLoad({filter:/shared[\\/](network|deployments[\\/]hedera-testnet)\.json$/},args=>({contents:JSON.stringify(args.path.endsWith('network.json')?network:manifest),loader:'json'}));}}]});
+ const recoveryHtml=await fs.readFile(new URL('../browser/index.html',import.meta.url));
+ const recoveryServer=http.createServer((req,res)=>{res.setHeader('content-type',req.url==='/recovery.js'?'text/javascript':'text/html');res.end(req.url==='/recovery.js'?recoveryBundle.outputFiles[0].contents:recoveryHtml);});
+ recoveryServer.listen(0,'127.0.0.1');await once(recoveryServer,'listening');
+ t.after(()=>{recoveryServer.closeAllConnections();recoveryServer.close();});
+ const dashboardUrl=`http://127.0.0.1:${server.address().port}`;
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));available=false;
- const {executeRecovery}=await import('../lib/recovery.mjs');
- const recovered=await executeRecovery({publicClient:client,walletClient:owner,manifest,taskId:task,operationIds:[operation]});
- assert.equal(recovered.task.reserved,'10');assert.equal(await client.readContract({address:treasury,abi,functionName:'totalWithdrawn'}),990n);
+ await assert.rejects(fetch(dashboardUrl));
+ await scene('Dashboard host has been shut down. Its URL now refuses connections.');
+ const recoveryStart=requests.length;
+ await page.goto(`http://127.0.0.1:${recoveryServer.address().port}`);
+ await scene('Independent saved recovery page · No Janus backend, Privy, merchant or directory.');
+ await page.locator('#rpc').fill(chain.rpcUrls.default.http[0]);
+ await page.locator('#task').fill(task);await page.locator('#operations').fill(operation);
+ const inspect=async()=>{await page.locator('#inspect').click();await page.waitForFunction(()=>!document.getElementById('inspect').disabled);assert.equal(await page.locator('#execute').isDisabled(),false);};
+ const recover=async()=>{await inspect();await page.locator('#consent').check();await page.locator('#execute').click();await page.waitForFunction(()=>!document.getElementById('inspect').disabled);assert.doesNotMatch(await page.locator('#status').innerText(),/Execution stopped/);};
+ await recover();
+ assert.equal((await client.readContract({address:treasury,abi,functionName:'tasks',args:[task]}))[2],10n);
+ assert.equal(await client.readContract({address:treasury,abi,functionName:'totalWithdrawn'}),990n);
+ await scene('Owner recovery succeeds with the dashboard OFF. The unexpired 10-unit obligation stays reserved.');
  await provider.request({method:'evm_increaseTime',params:[301]});await provider.request({method:'evm_mine',params:[]});
- await executeRecovery({publicClient:client,walletClient:owner,manifest,taskId:task,operationIds:[operation]});
+ await recover();
  assert.equal(await client.readContract({address:treasury,abi,functionName:'totalWithdrawn'}),1000n);
+ await scene('After LOCAL chain time advances past expiry: 1,000 units recovered; no reserved funds taken early.');
+ assert.ok(requests.slice(recoveryStart).every(request=>new URL(request.url).origin!==dashboardUrl),'Recovery contacted the stopped dashboard');
+ assert.ok(requests.every(request=>new URL(request.url).hostname==='127.0.0.1'),'Unexpected third-party browser traffic');
+ const video=page.video();await context.close();
+ if(evidence){await video.saveAs(path.join(evidence,'crops-recovery.webm'));await video.delete();await fs.writeFile(path.join(evidence,'report.json'),JSON.stringify({status:'passed',network:'local EVM 1337',wallet:'injected test EIP-1193 adapter; not a manual extension-wallet test',dashboardStopped:true,actualStaticRecoveryPage:true,withdrawnBeforeExpiry:'990',withdrawnAfterExpiry:'1000',requests,liveFunds:false},null,2));}
  if(process.env.JANUS_PHASE6_EVIDENCE){await fs.mkdir(process.env.JANUS_PHASE6_EVIDENCE,{recursive:true});await fs.copyFile(directory+'/dashboard.png',process.env.JANUS_PHASE6_EVIDENCE+'/dashboard.png');await fs.writeFile(process.env.JANUS_PHASE6_EVIDENCE+'/report.json',JSON.stringify({status:'passed',network:'ephemeral local EVM 1337',checks:['actual React treasury panel','block-pinned balances and event timeline','consent required','assignment epoch increment','rejected approval does not cancel','receipt-confirmed cancel/release/withdraw','dashboard host stopped before direct recovery','pending reservation preserved until expiry'],withdrawnBeforeExpiry:'990',withdrawnAfterExpiry:'1000',liveFunds:false},null,2));}
  console.log('Verified actual treasury UI, rejected approval, assignment epoch, cancellation and recovery with dashboard host stopped. Screenshot: '+directory+'/dashboard.png');
+ } catch(error) { console.error(error); throw error; }
 });

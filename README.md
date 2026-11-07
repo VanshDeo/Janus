@@ -2,6 +2,52 @@
 
 Payment-aware recovery for agent workflows. Task budgets stay with the work while worker spending authority can be safely reassigned.
 
+Public demo: [janus-puce.vercel.app](https://janus-puce.vercel.app).
+The team will continue building Janus after Mumbai. Detached research workers
+require a long-lived Node host; the hosted frontend alone does not establish
+that all backend integrations are deployed.
+
+Janus original source is available under the [MIT license](LICENSE). Dependencies,
+fonts and third-party assets retain their own licenses; MIT does not relicense them.
+
+## Build provenance and AI assistance
+
+The team confirms Janus ideation and implementation began after ETHGlobal Mumbai
+started and that the project is registered in the from-scratch track. ChatGPT
+assisted development. Codex also assisted repository analysis, qualification
+documentation, code changes, tests and demo automation. The team supplies product
+requirements and submission decisions; AI output is not an independent audit.
+The team has deferred the pre-existing code/assets declaration; no assertion about
+those assets is made here. Intended selections: EF CROPS, Arkiv Build on Arkiv
+(from scratch), and Hedera AI Agents That Pay. Final dashboard submission remains
+a team action.
+
+## CROPS
+
+Privy sign-in is wallet-only: email login and automatic embedded-wallet creation
+are disabled. Existing linked-account records are preserved. Retaining Privy does
+not resolve the separate EF no-trackers qualification gap.
+
+- **C — Censorship resistance:** Janus controls the hosted domain and research server; losing them stops hosted research, but a saved standalone recovery client uses the owner's wallet and a replaceable RPC directly. Recovery needs chain access, gas and task/operation records, not Janus, Privy, a relayer or Arkiv.
+- **O — Open source:** Original Janus code is MIT licensed. Build and run from this repository with Node.js 22 and the setup below; independent recovery needs no vendor account. Hosted identity, live models and testnet publication require their respective external services.
+- **P — Privacy:** Janus adds no analytics service, but Privy's SDK contains telemetry and whole-client tracker-free qualification remains open. Privy sees login/wallet metadata; the Janus server decrypts provider keys and stores private research inputs/artifacts; model providers see prompts; RPCs/indexers see IPs and queried addresses. Merchants see signed purchases, and chain/Arkiv metadata is public. Server storage enables detached research; it is an explicit privacy trade-off, not anonymity.
+- **S — Security:** Owner signing keys stay in the user's wallet for browser recovery; server provider keys use identity-bound AES-256-GCM, while checkpoints are plaintext private host files. Trust the host/vault key, wallet, RPC/chain, token issuer and reviewed contract; contracts are unaudited. Cancellation preserves reservations, and uncertain payments stop for reconciliation. Local CLI signers must be protected by the operator.
+
+Independent recovery instructions: [RECOVERY.md](shared/RECOVERY.md). Save both
+recovery files before an outage, or build them from the public source. User-key
+provider charges are separate from treasury USDC limits. Dependency and asset
+licensing, server privacy and external service availability remain explicit
+deployment responsibilities.
+
+[CROPS recovery demo (WebM, under three minutes)](docs/evidence/crops/crops-recovery.webm)
+shows actual local contracts and the static recovery page after dashboard shutdown.
+[Network/assertion evidence](docs/evidence/crops/report.json) records local-only
+recovery traffic. The wallet is an injected test adapter; no live funds are used.
+The hosted Privy login SDK has analytics code: **whole-client tracker-free
+qualification is not yet established for authenticated hosted login**. The
+independent recovery build contains no Privy, analytics SDK, remote scripts or
+remote media. Decorative third-party video requests have been removed from Janus.
+
 ## Project structure
 
 ```text
@@ -47,11 +93,41 @@ npm run check
 
 ## Current status and next work
 
-The financial core implements task-isolated caps, reservation/settlement/expiry, worker epochs, cancellation and owner recovery. The frontend has identity plumbing and illustrative accounting. Frontend and backend now share Hedera testnet configuration. The dashboard remains illustrative and the Phase-0 merchant is not yet adapted to the multi-task treasury.
+The financial core implements task-isolated caps, reservation/settlement/expiry, worker epochs, cancellation and owner recovery. The frontend uses wallet-only Privy sign-in and validated treasury reads/receipt-confirmed actions; illustrative accounting requires an explicit fixture toggle. Durable task-aware purchases, checkpointed replacement and paid research have bounded CLI/local proofs. Browser research execution remains separate from financial/discovery reassignment.
 
-Treasury integration readiness establishes the shared network/ABI/version, canonical operation encoding, independent accounting model and direct owner recovery client. The narrower supported contract scope is documented in [the treasury interface](shared/TREASURY_INTERFACE.md). The next milestone is the task-aware payment SDK and durable merchant results, followed by checkpointed replacement, a connected dashboard and independent recovery UI. Detailed gates are in [PLAN.md](shared/PLAN.md).
+The shared network/ABI/version, canonical operation encoding, accounting model and independent owner recovery client are implemented. Supported contract semantics are documented in [the treasury interface](shared/TREASURY_INTERFACE.md). Current qualification work and unresolved gates are in [submission status](docs/SUBMISSION_STATUS.md); broader integration gates remain in [PLAN.md](shared/PLAN.md).
 
 ## Live backend and configuration
+
+### Hedera x402 payment flow
+
+The native exact reference path uses official `@x402/hedera` and `@x402/core`
+2.30.0. Its endpoint is `GET http://127.0.0.1:4024/research-source`. An unpaid
+request receives HTTP 402 plus `PAYMENT-REQUIRED`; the client checks its pinned
+merchant/asset/maximum amount, signs a native `TransferTransaction`, and retries
+with `PAYMENT-SIGNATURE`. The self-run facilitator verifies payer signatures,
+transfer semantics and balances, adds its fee-payer signature, waits for consensus
+SUCCESS, and returns HTTP 200 with `PAYMENT-RESPONSE`. It sponsors network fees.
+The dedicated payer is allowlisted; a two-HBAR network-fee ceiling and durable
+submission journal protect the reference facilitator. Replay reuses the original
+transaction; uncertain submissions require reconciliation.
+
+Run `npm run x402:test --prefix backend` for the official-SDK offline HTTP test
+(consensus is mocked). For a bounded **live testnet** request and recorded video,
+copy `backend/.env.hedera.example` to ignored `backend/.env.hedera`, configure the
+five `HEDERA_X402_*` account/key fields using two funded ECDSA testnet accounts,
+then run `npm run x402:live --prefix backend`. The merchant may be the facilitator.
+The default payment is 10,000 tinybars (0.0001 test HBAR). Set
+`JANUS_CHROMIUM_PATH` if using an existing Chromium. Public proof goes to
+`docs/evidence/hedera-exact/`; signed intents remain private in `.merchant-state/`.
+The completed-run guard prevents another payment after successful evidence.
+
+Historical executor-path settlement:
+[`0.0.11338859@1793968385.882027690` on HashScan](https://hashscan.io/testnet/transaction/0.0.11338859@1793968385.882027690),
+with [settlement/transfer evidence](backend/hedera/evidence/live-settlement.json).
+It is a recorded 0.02 test-USDC payment, **not proof of the newly added native
+exact path**. The task-treasury signed quote/purchase adapter remains separate;
+native exact payments do not enforce TaskTreasury caps or worker epochs.
 
 Testnet credentials belong in ignored `backend/.env.hedera`. Compile contracts and install all modules before using live tooling. `npm run backend:serve` starts the restricted Phase-0 merchant/facilitator. Live commands may spend testnet funds; they are excluded from setup and local tests.
 
@@ -81,7 +157,7 @@ Run `npm run sponsors:check` to validate the register and local references; it d
 
 ## Arkiv worker discovery
 
-Run `npm run arkiv:query` to query public research-worker records independently of the Janus backend. Set up a dedicated funded Rabdi wallet with `backend/.env.arkiv.example`, then use `npm run arkiv:preflight` (read-only) and `npm run arkiv:publish` (test-gas write). Writer addresses, entity keys and transaction hashes are printed by publication and must be recorded from actual runs; no funded writer/publication is claimed yet.
+Run `npm run arkiv:query` to query public research-worker records independently of the Janus backend. Set up a dedicated funded Rabdi wallet with `backend/.env.arkiv.example`, then use `npm run arkiv:preflight` (read-only) and `npm run arkiv:publish` (test-gas write). Recorded funded publication is linked below; fresh writes require a locally configured funded signer. Writer addresses, entity keys and transaction hashes must come from actual runs.
 
 `npm run demo:handoff` verifies discovery-driven replacement against a labelled fixture directory and local payments. `npm run demo:arkiv` explicitly publishes on Rabdi and uses live reads for that same local treasury/payment flow. It does not submit live Hedera payments. Read [the Arkiv setup guide](shared/ARKIV.md) for schema, owner policy, signed readiness, failure cases and evidence paths. The current adapter uses `janus-task-v1`; it is not a standard x402 compliance claim.
 

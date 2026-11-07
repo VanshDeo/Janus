@@ -5,14 +5,18 @@ import { PrivyProvider, usePrivy, useWallets, useLogin } from "@privy-io/react-a
 import network from "../../../shared/network.json";
 import { defineChain, formatEther, type EIP1193Provider } from "viem";
 
-export const targetChain = defineChain({ ...network, id: network.chainId });
+const localPort = process.env.NEXT_PUBLIC_JANUS_RPC_PORT;
+export const targetChain = localPort ? defineChain({
+  id: 1337, name: 'Janus local', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: { default: { http: [`http://127.0.0.1:${localPort}`] } },
+}) : defineChain({ ...network, id: network.chainId });
 type AuthState = {
   configured: boolean; ready: boolean; authenticated: boolean;
   user: { id: string; email?: string } | null;
   walletAddress: string | null; walletType: string | null; chainId: number | null;
   balance: string | null; error: string | null;
   session: "idle" | "checking" | "verified" | "error";
-  login: (method?: "email" | "wallet") => void;
+  login: (method?: "wallet") => void;
   logout: () => Promise<void>; connectWallet: () => void;
   selectWallet: (address: string) => void;
   wallets: { address: string; walletClientType: string }[];
@@ -85,7 +89,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   async function switchNetwork() {
     setError(null);
     try { await wallet?.switchChain(targetChain.id); await refresh(); }
-    catch { setError("Network switch was declined or failed. Select Hedera Testnet in your wallet and retry."); }
+    catch { setError(`Network switch was declined or failed. Select ${targetChain.name} in your wallet and retry.`); }
   }
   async function exportWallet() {
     setError(null);
@@ -98,7 +102,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
     walletAddress: wallet?.address ?? null, walletType: wallet?.walletClientType ?? null,
     chainId: privy.authenticated ? chainId : null, balance: privy.authenticated ? balance : null,
     error, session: privy.authenticated ? session : "idle", wallets,
-    login: (method) => { setError(null); login(method ? { loginMethods: [method] } : undefined); },
+    login: () => { setError(null); login({ loginMethods: ["wallet"] }); },
     logout: async () => { await privy.logout(); setSession("idle"); setBalance(null); setChainId(null); selectWallet(null); setError(null); },
     connectWallet: () => privy.connectWallet({
       walletList: ["detected_ethereum_wallets", "metamask", "coinbase_wallet", "rainbow", "wallet_connect"],
@@ -136,10 +140,10 @@ export function PrivyAuthWrapper({ children }: { children: ReactNode }) {
           ],
         },
         walletConnectCloudProjectId: walletConnectProjectId,
-        loginMethods: ["email", "wallet"],
+        loginMethods: ["wallet"],
         defaultChain: targetChain,
         supportedChains: [targetChain],
-        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+        embeddedWallets: { ethereum: { createOnLogin: "off" } },
       }}
     >
       <PrivyBridge>{children}</PrivyBridge>

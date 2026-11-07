@@ -69,3 +69,6 @@ next-env.d.ts
 
 # Reproducible standalone recovery assets, generated before frontend dev/build
 /frontend/public/recovery/
+
+# Browser recording intermediates; explicitly named reviewer videos are source evidence.
+**/page@*.webm

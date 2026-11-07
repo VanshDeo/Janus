@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "rulesReviewedOn": "2026-11-06",
+  "rulesReviewedOn": "2026-11-07",
   "timezone": "Asia/Calcutta",
   "scope": "Internal evidence readiness; not sponsor eligibility or award confirmation",
   "requirements": [
@@ -9,8 +9,11 @@
       "sponsor": "event",
       "requirement": "Registered track, build provenance, reused assets and meaningful human/AI contribution disclosure",
       "mandatory": true,
-      "status": "missing",
-      "evidencePaths": [],
+      "status": "partial",
+      "evidencePaths": [
+        "README.md",
+        "docs/SUBMISSION_STATUS.md"
+      ],
       "verificationRecord": null
     },
     {
@@ -20,7 +23,9 @@
       "mandatory": true,
       "status": "partial",
       "evidencePaths": [
-        "README.md"
+        "README.md",
+        "LICENSE",
+        "docs/SUBMISSION_STATUS.md"
       ],
       "verificationRecord": null
     },
@@ -31,17 +36,21 @@
       "mandatory": true,
       "status": "partial",
       "evidencePaths": [
-        "shared/PAID_WORKFLOW.md"
+        "shared/NATIVE_X402.md",
+        "backend/hedera/lib/exact-merchant.mjs",
+        "backend/hedera/test/exact-payment.test.mjs"
       ],
       "verificationRecord": null
     },
     {
       "id": "HED-02",
       "sponsor": "hedera",
-      "requirement": "Autonomous paid request with real Hedera settlement and identical replay result",
+      "requirement": "Autonomous native exact paid request with real Hedera settlement and identical replay result",
       "mandatory": true,
-      "status": "recorded",
+      "status": "partial",
       "evidencePaths": [
+        "backend/hedera/lib/exact-client.mjs",
+        "backend/hedera/scripts/exact-live.mjs",
         "backend/hedera/evidence/task-aware-live-proof.json"
       ],
       "verificationRecord": null
@@ -50,7 +59,7 @@
       "id": "HED-03",
       "sponsor": "hedera",
       "requirement": "Budgets, stale authority and conserved pending payments tested",
-      "mandatory": true,
+      "mandatory": false,
       "status": "partial",
       "evidencePaths": [
         "contracts/phase1/test/treasury.test.mjs"
@@ -62,8 +71,11 @@
       "sponsor": "hedera",
       "requirement": "Public payment setup, transaction ID/HashScan and compliant final video",
       "mandatory": true,
-      "status": "missing",
-      "evidencePaths": [],
+      "status": "partial",
+      "evidencePaths": [
+        "README.md",
+        "backend/hedera/scripts/exact-live.mjs"
+      ],
       "verificationRecord": null
     },
     {
@@ -76,7 +88,8 @@
         "backend/arkiv/cli.mjs",
         "backend/arkiv/live-demo.mjs",
         "shared/ARKIV.md",
-        "backend/arkiv/evidence/2026-11-07/README.md"
+        "backend/arkiv/evidence/2026-11-07/README.md",
+        "docs/SUBMISSION_STATUS.md"
       ],
       "verificationRecord": null
     },
@@ -91,7 +104,9 @@
         "backend/hedera/test/checkpoint-runner.test.mjs",
         "shared/ARKIV.md",
         "docs/evidence/arkiv-discovery-2026-11-07.json",
-        "backend/arkiv/evidence/2026-11-07/README.md"
+        "backend/arkiv/evidence/2026-11-07/README.md",
+        "docs/evidence/arkiv-current-query.json",
+        "docs/evidence/arkiv-current/browser-read.json"
       ],
       "verificationRecord": null
     },
@@ -100,7 +115,7 @@
       "sponsor": "arkiv",
       "requirement": "Expiry, ownership, capability and no-result adversarial discovery evidence",
       "mandatory": true,
-      "status": "partial",
+      "status": "recorded",
       "evidencePaths": [
         "backend/arkiv/discovery.test.mjs",
         "backend/hedera/test/checkpoint-runner.test.mjs",
@@ -114,7 +129,7 @@
       "sponsor": "arkiv",
       "requirement": "Root arkiv criterion/schema files, README writer wallets/query, FOSS and AI disclosure",
       "mandatory": true,
-      "status": "partial",
+      "status": "recorded",
       "evidencePaths": [
         "arkiv/schema.md",
         "arkiv/friction.md",
@@ -122,7 +137,9 @@
         "arkiv/why-arkiv.md",
         "arkiv/how-you-use-arkiv.md",
         "README.md",
-        "backend/arkiv/evidence/2026-11-07/README.md"
+        "backend/arkiv/evidence/2026-11-07/README.md",
+        "LICENSE",
+        "docs/SUBMISSION_STATUS.md"
       ],
       "verificationRecord": null
     },
@@ -131,19 +148,24 @@
       "sponsor": "crops",
       "requirement": "Independent owner recovery with services stopped and reserved funds protected",
       "mandatory": true,
-      "status": "partial",
+      "status": "recorded",
       "evidencePaths": [
-        "shared/RECOVERY.md"
+        "shared/RECOVERY.md",
+        "docs/evidence/crops/report.json",
+        "contracts/phase1/test/dashboard-wallet.test.mjs"
       ],
       "verificationRecord": null
     },
     {
       "id": "CROPS-02",
       "sponsor": "crops",
-      "requirement": "Browser recovery UX, shutdown/network trace and three reset measurements",
+      "requirement": "At-most-three-minute video demonstrating independent owner recovery with application unavailable",
       "mandatory": true,
-      "status": "missing",
-      "evidencePaths": [],
+      "status": "recorded",
+      "evidencePaths": [
+        "docs/evidence/crops/crops-recovery.webm",
+        "docs/evidence/crops/report.json"
+      ],
       "verificationRecord": null
     },
     {
@@ -151,8 +173,12 @@
       "sponsor": "crops",
       "requirement": "Root license, README CROPS section, third-party visibility/key protection and no-trackers review",
       "mandatory": true,
-      "status": "missing",
-      "evidencePaths": [],
+      "status": "partial",
+      "evidencePaths": [
+        "LICENSE",
+        "README.md",
+        "docs/SUBMISSION_STATUS.md"
+      ],
       "verificationRecord": null
     },
     {
@@ -160,15 +186,19 @@
       "sponsor": "crops",
       "requirement": "At-most-three-minute property demo and correct EF category/provenance",
       "mandatory": true,
-      "status": "missing",
-      "evidencePaths": [],
+      "status": "partial",
+      "evidencePaths": [
+        "README.md",
+        "docs/SUBMISSION_STATUS.md",
+        "docs/evidence/crops/crops-recovery.webm"
+      ],
       "verificationRecord": null
     },
     {
       "id": "DEMO-01",
       "sponsor": "event",
       "requirement": "Combined live/local-labelled sponsor flow with measurements and independently reviewed evidence",
-      "mandatory": true,
+      "mandatory": false,
       "status": "missing",
       "evidencePaths": [],
       "verificationRecord": null

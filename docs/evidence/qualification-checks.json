@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-07",
+  "runtime": "Node.js 22.23.4 on Windows",
+  "scope": "Local verification summary; not independent sponsor approval",
+  "checks": [
+    { "command": "npm run check:repo", "result": "passed" },
+    { "command": "npm run lint --prefix frontend", "result": "passed" },
+    { "command": "npm run typecheck --prefix frontend", "result": "passed" },
+    { "command": "npm run contracts:compile", "result": "passed; exported interface unchanged" },
+    { "command": "npm run test:protocol", "result": "5 passed" },
+    { "command": "npm test --prefix contracts", "result": "23 passed across Phase 0 and Phase 1" },
+    { "command": "npm test --prefix backend", "result": "36 passed with local HTTP/process access" },
+    { "command": "npm test --prefix frontend", "result": "9 passed" },
+    { "command": "npm run build --prefix frontend", "result": "passed; 13 generated pages" },
+    { "command": "node --test --test-force-exit --test-timeout=60000 contracts/phase1/test/dashboard-wallet.test.mjs", "result": "passed; actual static recovery after dashboard shutdown; local EVM and injected test wallet" },
+    { "command": "node frontend/scripts/verify-arkiv-browser.mjs", "result": "passed with expected writer/entity from fresh independent query; actual React component, isolated account fixture, live public RPC" },
+    { "command": "isolated Chromium against built frontend /login", "result": "wallet button present, email button absent, Referrer-Policy no-referrer; no signature requested" }
+  ],
+  "limitations": [
+    "The initial sandboxed combined check failed local HTTP restrictions and Windows directory fsync; individual owning checks were rerun after correcting persistence and enabling local test access",
+    "Ganache's native uWS binary was unavailable; its Node.js fallback was used",
+    "The fresh native exact path has offline SDK tests; live settlement and its video await funded testnet credentials",
+    "Privy remains wallet-only by team choice; EF whole-client no-trackers qualification stays open",
+    "Pre-existing code/assets declaration is intentionally deferred by the team",
+    "Public demo homepage returned HTTP 200; full hosted backend behavior was not established"
+  ]
+}

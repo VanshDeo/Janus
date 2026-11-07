@@ -22,6 +22,8 @@ COPY --from=services /app/contracts ./contracts
 COPY shared ./shared
 COPY scripts/prepare-recovery.mjs ./scripts/
 RUN mkdir /app/.workbench-state && chown node:node /app/.workbench-state
+ARG NEXT_PUBLIC_JANUS_RPC_PORT=""
+ENV NEXT_PUBLIC_JANUS_RPC_PORT=$NEXT_PUBLIC_JANUS_RPC_PORT
 ARG NEXT_PUBLIC_PRIVY_APP_ID=""
 ARG NEXT_PUBLIC_PRIVY_CLIENT_ID=""
 ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=""
